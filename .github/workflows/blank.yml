@@ -17,7 +17,7 @@ jobs:
         java-version: 17
         distribution: 'temurin'
     - name: Build mod jar
-      run: bash ./gradlew deploy
+      run: bash ./gradlew deployGithub
     - name: Upload built jar file
       uses: actions/upload-artifact@v4
       with:
