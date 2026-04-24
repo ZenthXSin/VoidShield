@@ -1,0 +1,25 @@
+#the mod name as displayed in-game
+displayName: "Void Shield"
+
+#the internal name of your mod
+name: "VoidShield"
+
+#your name
+author: "zxs"
+
+#the fully qualified main class of the mod
+main: "voidshield.VoidShieldMod"
+#main: "voidshield.OtherMod"
+#main: "voidshield.Test"
+
+#the mod description as seen in the mod dialog
+description: "代码编写: ZXS\n贴图制作: 花杨永瀛\n委托: 一得阁拉米"
+
+#the mod version
+version: 1.1
+
+#the minimum game build required to run this mod
+minGameVersion: 154
+
+#whether the mod should be loaded in multiplayer games
+multiplayerCompatible: true

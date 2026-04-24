@@ -1,0 +1,11 @@
+{
+  "prompts": {
+    "d3aff502-0e02-4b0d-a16a-10bfc46c030f": {
+      "id": "d3aff502-0e02-4b0d-a16a-10bfc46c030f",
+      "name": "mdt",
+      "content": "这是一个mindustry kotlin mod项目，在你回答问题时请查看源码并判断你的回答是否正确，github.com/Anuken/Mindustry为游戏的git库,使用中文交流，尽量节省token,C:\\Users\\Administrator\\Desktop\\Mindustry\\源码\\core\\src\\mindustry为游戏源代码，C:\\Users\\Administrator\\Desktop\\Mindustry\\other\\unk有提供一个反射库",
+      "createdAt": 1774609971987,
+      "updatedAt": 1774678170457
+    }
+  }
+}

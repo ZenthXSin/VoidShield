@@ -1,0 +1,10 @@
+{
+    "name": "heat-catheter",
+    "drawer": {
+        "type": "DrawMulti",
+        "drawers": [
+            "DrawDefault",
+            "voidshield.other.drawers.DrawHeat"
+        ]
+    }
+}

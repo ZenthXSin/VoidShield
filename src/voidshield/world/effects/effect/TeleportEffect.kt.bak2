@@ -1,0 +1,368 @@
+package voidshield.world.effects.effect
+
+import arc.Events
+import arc.graphics.g2d.Draw
+import arc.graphics.g2d.Fill
+import arc.graphics.g2d.Lines
+import arc.math.Mathf
+import arc.util.Log
+import arc.util.Time
+import arc.util.serialization.Json
+import arc.util.serialization.Jval
+import arc.util.serialization.Jval.Jformat
+import mindustry.Vars
+import mindustry.entities.Effect
+import mindustry.game.EventType
+import kotlin.math.pow
+
+class Config {
+    // ========== 颜色配置 ==========
+
+    /** 粒子颜色 - 浅绿色 (RGB: 143, 237, 143) - 用于聚集粒子效果 */
+    var PARTICLE_COLOR_R = 0.56f
+    var PARTICLE_COLOR_G = 0.93f
+    var PARTICLE_COLOR_B = 0.56f
+
+    /** 全屏闪光颜色 - 纯白色 (RGB: 255, 255, 255) - 用于爆发闪光效果 */
+    var FULLSCREEN_COLOR_R = 1.0f
+    var FULLSCREEN_COLOR_G = 1.0f
+    var FULLSCREEN_COLOR_B = 1.0f
+
+    /** 激光束颜色 - 苍蓝色 (RGB: 128, 166, 204) - 用于线段粒子效果 */
+    var LINE_COLOR_R = 0.5f
+    var LINE_COLOR_G = 0.65f
+    var LINE_COLOR_B = 0.8f
+
+// ========== 粒子配置（绿色聚集粒子） ==========
+
+    /** 同时存在的最大粒子数量 */
+    var PARTICLE_COUNT = 50
+
+    /** 粒子分布的最大半径范围（像素） */
+    var MAX_RADIUS = 80f
+
+    /** 粒子生成间隔（帧数，2帧 ≈ 0.033秒 @60fps） */
+    var SPAWN_INTERVAL = 2f
+
+    /** 单个粒子的最大生命周期（帧数，90帧 = 1.5秒 @60fps） */
+    var MAX_PARTICLE_LIFE = 90f
+
+    /** 粒子最小尺寸（像素） */
+    var MIN_PARTICLE_SIZE = 1f
+
+    /** 粒子最大尺寸（像素） */
+    var MAX_PARTICLE_SIZE = 6f
+
+// ========== 光圈配置（收缩的绿色圆环） ==========
+
+    /** 圆环最大半径（64像素，8×8单位） */
+    var RING_MAX_RADIUS = 8f * 8f
+
+    /** 圆环最小线宽（3.2像素，0.4×8单位） */
+    var RING_MIN_WIDTH = 0.4f * 8f
+
+    /** 圆环最大线宽（8像素，1×8单位） */
+    var RING_MAX_WIDTH = 1f * 8f
+
+    /** 圆环生成间隔（帧数，10帧 ≈ 0.167秒 @60fps） */
+    var RING_SPAWN_INTERVAL = 10f
+
+    /** 同时存在的最大圆环数量 */
+    var MAX_RINGS = 30
+
+// ========== 全屏粒子配置（白色闪光） ==========
+
+    /** 全屏闪光持续时间（帧数，120帧 = 2秒 @60fps） */
+    var FULLSCREEN_DURATION = 120f
+
+    /** 闪光前等待时间（帧数，30帧 = 0.5秒 @60fps） */
+    var FULLSCREEN_WAIT = 30f
+
+    /** 闪光淡出时间（帧数，90帧 = 1.5秒 @60fps） */
+    var FULLSCREEN_FADE = 90f
+    /** 粒子大小 */
+    var SIZE_SCREEN = 2000f * 8
+
+// ========== 线段粒子配置（苍蓝色激光束） ==========
+
+    /** 激光束宽度 */
+    var LINE_WIDTH = 24f
+
+    /** 激光束长度 */
+    var LINE_LENGTH = 2000f * 8
+
+    /** 激光束持续时间（帧数，90帧 = 1.5秒 @60fps） */
+    var LINE_DURATION = 90f
+
+    /** 激光束淡出延迟（帧数，60帧 = 1秒 @60fps） */
+    var LINE_FADE_DELAY = 60f
+}
+object TeleportEffect {
+    var config = Config()
+
+    // ========== 特效持续时间 - 转换为秒 ==========
+    var READY_DURATION = 290f   // 290帧 ≈ 4.83秒
+    var END_DURATION = 130f     // 130帧 ≈ 2.17秒
+
+    fun loadJson(mod: String) {
+        try {
+            Vars.mods.locateMod(mod).apply {
+                val effectConfigs = this.root.child("content").child("effectConfig")
+                if (effectConfigs.exists()) {
+                    Log.info("[TeleportEffect] 加载自定义配置")
+                    val text = effectConfigs.child("teleportEffectConfig.json").readString()
+                    config = Json().fromJson(config.javaClass,Jval.read(text).toString(Jformat.plain))
+                }
+            }
+        } catch (e: Exception) {
+            Log.info("[TeleportEffect] 尝试加载自定义配置失败：$e")
+        }
+    }
+
+    data class Particle(
+        var startX: Float,
+        var startY: Float,
+        val spawnTime: Float,  // 秒
+        val arriveTime: Float  // 秒
+    )
+
+    data class Ring(
+        val spawnTime: Float,  // 秒
+        val life: Float        // 秒
+    )
+
+    data class FullscreenParticle(
+        val spawnTime: Float,  // 秒
+        val x: Float,
+        val y: Float
+    )
+
+    data class LineParticle(
+        val spawnTime: Float,  // 秒
+        val rotation: Float
+    )
+
+    // readyTeleport 状态类
+    class ReadyState {
+        val activeParticles = mutableListOf<Particle>()
+        val activeRings = mutableListOf<Ring>()
+        var particleSpawnTimer = 0f  // 秒
+        var ringSpawnTimer = 0f      // 秒
+    }
+
+    // endTeleport 状态类
+    class EndState {
+        var fullscreenParticle: FullscreenParticle? = null
+        var lineParticle: LineParticle? = null
+    }
+
+    /**
+     * 传送准备特效（全屏闪光前）
+     * 持续时间：290帧 = 4.83秒（60fps）
+     * 包含：绿色粒子聚集、收缩光圈
+     */
+    private val READY_TELEPORT_EFFECT = Effect(READY_DURATION) { e ->
+        val state = e.data as? ReadyState ?: run {
+            val newState = ReadyState()
+            e.data = newState
+            newState
+        }
+
+        val startx = e.x
+        val starty = e.y
+        val time = e.time  // Effect的时间，单位：秒
+
+        // 动画开始时重置所有状态（只在time接近0时执行一次）
+        if (time <= 0.05f) {  // 约3帧内
+            state.activeParticles.clear()
+            state.activeRings.clear()
+            state.particleSpawnTimer = 0f
+            state.ringSpawnTimer = 0f
+        }
+
+        // ========== 粒子生成（数量越来越多） ==========
+        if (time < config.MAX_PARTICLE_LIFE) {
+            state.particleSpawnTimer += Time.delta
+            if (state.particleSpawnTimer >= config.SPAWN_INTERVAL) {
+                state.particleSpawnTimer = 0f
+
+                // 计算本次应生成的粒子数量：随时间递增，每30帧(0.5秒)增加1个，最多一次5个
+                val currentSpawnCount = minOf(5, 1 + Mathf.floor(time / (30f )).toInt())
+
+                // 批量生成粒子，但不超过总数上限
+                repeat(currentSpawnCount) {
+                    if (state.activeParticles.size < config.PARTICLE_COUNT) {
+                        val angle = Mathf.random() * Mathf.PI * 2
+                        val radius = config.MAX_RADIUS * Mathf.sqrt(Mathf.random())
+
+                        state.activeParticles.add(Particle(
+                            startX = startx + Mathf.cos(angle) * radius,
+                            startY = starty + Mathf.sin(angle) * radius,
+                            spawnTime = time,
+                            arriveTime = 30f  + Mathf.random() * 60f   // 0.5~1.5秒
+                        ))
+                    }
+                }
+            }
+        }
+
+        // ========== 光圈生成 ==========
+        if (state.activeParticles.size > 10 || time < config.MAX_PARTICLE_LIFE - 60f ) {
+            state.ringSpawnTimer += Time.delta
+            if (state.ringSpawnTimer >= config.RING_SPAWN_INTERVAL && state.activeRings.size < config.MAX_RINGS) {
+                state.ringSpawnTimer = 0f
+
+                state.activeRings.add(Ring(
+                    spawnTime = time,
+                    life = 30f   // 0.5秒
+                ))
+            }
+        }
+
+        // ========== 绘制粒子（越靠近中心越大，1到6） ==========
+        val particlesIterator = state.activeParticles.iterator()
+        while (particlesIterator.hasNext()) {
+            val p = particlesIterator.next()
+            val age = time - p.spawnTime
+
+            if (age > p.arriveTime) {
+                particlesIterator.remove()
+                continue
+            }
+
+            val progress = age / p.arriveTime
+            val eased = 1 - (1 - progress).pow(2)
+            val x = p.startX + (startx - p.startX) * eased
+            val y = p.startY + (starty - p.startY) * eased
+
+            val alpha = when {
+                age < 5f  -> age / (5f )  // 约5帧淡入
+                else -> 1 - (age / p.arriveTime)
+            }.coerceIn(0f, 1f)
+
+            // 计算粒子大小：越靠近中心（progress越大）越大，范围1到6
+            val sizeRange = config.MAX_PARTICLE_SIZE - config.MIN_PARTICLE_SIZE
+            val currentSize = config.MIN_PARTICLE_SIZE + sizeRange * progress
+
+            Draw.color(config.PARTICLE_COLOR_R, config.PARTICLE_COLOR_G, config.PARTICLE_COLOR_B, alpha)
+            Fill.circle(x, y, currentSize)
+        }
+
+        // ========== 绘制光圈 ==========
+        val ringsIterator = state.activeRings.iterator()
+        while (ringsIterator.hasNext()) {
+            val ring = ringsIterator.next()
+            val ringAge = time - ring.spawnTime
+
+            if (ringAge > ring.life) {
+                ringsIterator.remove()
+                continue
+            }
+
+            val ringProgress = ringAge / ring.life
+            val currentRadius = config.RING_MAX_RADIUS * (1 - ringProgress)
+            val currentWidth = config.RING_MIN_WIDTH + (config.RING_MAX_WIDTH - config.RING_MIN_WIDTH) * ringProgress
+            val ringAlpha = (0.2f + 0.6f * ringProgress).coerceIn(0f, 1f)
+
+            Draw.color(config.PARTICLE_COLOR_R, config.PARTICLE_COLOR_G, config.PARTICLE_COLOR_B, ringAlpha)
+            Lines.stroke(currentWidth)
+            Lines.circle(startx, starty, currentRadius)
+        }
+    }
+
+    /**
+     * 传送结束特效（全屏闪光后，包含闪光创建）
+     * 持续时间：130帧 = 2.17秒（60fps）
+     * 包含：白色全屏闪光、苍蓝色激光束
+     */
+    private val END_TELEPORT_EFFECT = Effect(END_DURATION) { e ->
+        val state = e.data as? EndState ?: run {
+            val newState = EndState()
+            e.data = newState
+            newState
+        }
+
+        val startx = e.x
+        val starty = e.y
+        val time = e.time
+
+        // 动画开始时重置状态（只在开始时执行一次）
+        if (time <= 0.05f) {
+            state.fullscreenParticle = null
+            state.lineParticle = null
+        }
+
+        // ========== 全屏粒子生成（在特效开始时创建） ==========
+        if (state.fullscreenParticle == null) {
+            state.fullscreenParticle = FullscreenParticle(
+                spawnTime = time,
+                x = startx,
+                y = starty
+            )
+        }
+
+        // ========== 线段粒子生成（fullscreenWait后） ==========
+        state.fullscreenParticle?.let { fs ->
+            val fsAgeCheck = time - fs.spawnTime
+            if (fsAgeCheck >= config.FULLSCREEN_WAIT && state.lineParticle == null) {
+                state.lineParticle = LineParticle(
+                    spawnTime = time,
+                    rotation = e.rotation
+                )
+            }
+        }
+
+        // ========== 绘制全屏粒子 ==========
+        state.fullscreenParticle?.let { fs ->
+            val fsAge = time - fs.spawnTime
+
+            if (fsAge <= config.FULLSCREEN_DURATION) {
+                val fsAlpha = if (fsAge <= config.FULLSCREEN_WAIT) {
+                    1f
+                } else {
+                    1 - (fsAge - config.FULLSCREEN_WAIT) / config.FULLSCREEN_FADE
+                }.coerceIn(0f, 1f)
+
+                if (fsAlpha > 0) {
+                    val screenSize = config.SIZE_SCREEN
+                    Draw.color(config.FULLSCREEN_COLOR_R, config.FULLSCREEN_COLOR_G, config.FULLSCREEN_COLOR_B, fsAlpha)
+                    Fill.circle(fs.x, fs.y, screenSize)
+                }
+            }
+        }
+
+        // ========== 绘制线段粒子 ==========
+        state.lineParticle?.let { line ->
+            val lineAge = time - line.spawnTime
+
+            if (lineAge <= config.LINE_DURATION) {
+                val currentWidth = if (lineAge < config.LINE_FADE_DELAY) {
+                    config.LINE_WIDTH
+                } else {
+                    val fadeProgress = (lineAge - config.LINE_FADE_DELAY) / (config.LINE_DURATION - config.LINE_FADE_DELAY)
+                    config.LINE_WIDTH * (1 - fadeProgress)
+                }.coerceAtLeast(0f)
+
+                if (currentWidth > 0) {
+                    Draw.color(config.LINE_COLOR_R, config.LINE_COLOR_G, config.LINE_COLOR_B, 1f)
+                    Lines.stroke(currentWidth)
+
+                    val angle = line.rotation * Mathf.PI / 180
+                    val halfLen = config.LINE_LENGTH / 2
+                    val dx = Mathf.cos(angle) * halfLen
+                    val dy = Mathf.sin(angle) * halfLen
+
+                    Lines.line(startx - dx, starty - dy, startx + dx, starty + dy)
+                }
+            }
+        }
+    }
+
+    fun readyTeleport(): Effect {
+        return READY_TELEPORT_EFFECT
+    }
+
+    fun endTeleport(): Effect {
+        return END_TELEPORT_EFFECT
+    }
+}

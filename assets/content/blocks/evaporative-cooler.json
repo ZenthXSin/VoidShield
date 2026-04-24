@@ -1,0 +1,29 @@
+{
+    "name": "evaporative-cooler",
+    "drawer": {
+        "type": "DrawMulti",
+        "drawers": [
+            {
+                "type": "DrawRegion",
+                "suffix": "-bottom"
+            },
+            {
+				"type": "DrawLiquidTile",
+				"drawLiquid": "cryofluid"
+			},
+            "DrawDefault",
+            {
+                "type": "DrawRegion",
+                "suffix": "-top"
+            },
+            "voidshield.other.drawers.DrawHeat"
+        ]
+    }
+    	"consumes": {
+		"power": 8,
+		"liquids": [
+		"water/2",
+		"cryofluid/0.8"
+		]
+	}
+}
