@@ -7,6 +7,7 @@ import voidshield.world.blocks.HeatNode
 import voidshield.world.blocks.HeaterBlock
 import voidshield.other.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.CorVacuum
+import voidshield.world.blocks.HeatNode
 import voidshield.world.blocks.MicroVoid
 import voidshield.world.blocks.VelumSolvent
 
