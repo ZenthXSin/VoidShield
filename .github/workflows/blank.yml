@@ -45,5 +45,7 @@ jobs:
         with:
           tag_name: "TestAutoBuild"
           files: build/libs/*.jar  # 通配符匹配所有 jar
+          generate_release_notes: true
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
