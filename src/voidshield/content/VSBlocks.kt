@@ -3,10 +3,10 @@ package voidshield.content
 import mindustry.content.Items
 import mindustry.type.Category
 import mindustry.type.ItemStack
-import voidshield.world.blocks.HeatNode
 import voidshield.world.blocks.HeaterBlock
 import voidshield.other.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.CorVacuum
+import voidshield.world.blocks.HeatCatheter
 import voidshield.world.blocks.MicroVoid
 import voidshield.world.blocks.VelumSolvent
 
@@ -18,9 +18,9 @@ object VSBlocks {
 
     var evaporativeCooler: HeaterBlock? = null
 
-    var heatNode: HeatNode? = null
-
     var airCooler: HeaterBlock? = null
+
+    var heatCatheter: HeatCatheter? = null
 
     var velumSolvent: VelumSolvent? = null
 
@@ -29,17 +29,6 @@ object VSBlocks {
     var corVacuum: CorVacuum? = null
 
     fun load() {
-        heatNode = HeatNode("heat-catheter").apply {
-            size = 1
-            maxTemperature = 2000f
-            specificHeat = 0f
-            overheatDamage = 0.5f
-            overheatThreshold = 0.9f
-            range = 5
-            conductivity = 1f
-            hasPower = false
-            requirements(voidShield, ItemStack.with(Items.copper, 50, Items.lead, 30))
-        }
         heatSink = HeaterBlock("heatSink").apply {
             size = 2
             hasPower = false
@@ -64,10 +53,19 @@ object VSBlocks {
             size = 4
             //consumePower(300f)
             maxTemperature = 2000f
-            heatingRate = -8f
+            heatingRate = -5f
             overheatDamage = 1f
             //specificHeat = 5f
             overheatThreshold = 0.9f
+            requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+        }
+
+        heatCatheter = HeatCatheter("heat-catheter").apply {
+            size = 1
+            maxTemperature = 2000f
+            overheatDamage = 1f
+            overheatThreshold = 0.9f
+            specificHeat = 1f
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
         }
 

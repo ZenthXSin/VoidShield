@@ -21,7 +21,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 
     var maxArea: Int = 200//最大立场面积
 
-    var defaultHeat: Float = 2f//待机时升温速度
+    var defaultHeat: Float = 8f//待机时升温速度
 
     init {
         update = true
@@ -47,7 +47,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
         addBar("wattage") { build: Building ->
             val hb = build as VelumSolventBuild
             Bar(
-                { "功率：" + hb.nowWattage * 100f + "%" },
+                { "升温速度：" + hb.heatChange().roundToInt() + "℃/tick" },
                 { Pal.accent },
                 { hb.nowWattage }
             )
@@ -101,8 +101,6 @@ class VelumSolvent(name: String) : HeatBlock(name) {
         override var spaces: MutableMap<Int, SpaceDate.FieldZone> = mutableMapOf()
 
         override fun updateTile() {
-            super.updateTile()
-
             updateSpaceDate()
 
             area = getAllAreas()
@@ -126,16 +124,17 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 //                    }
 //                }
                 //升温逻辑
-                if (nowWattage == 0f) {
-                    temperature += defaultHeat//待机时
-                } else if (nowWattage <= 1) {
-                    temperature += defaultHeat + nowWattage * 18f//工作时
-                } else if (nowWattage > 1) {
-                    temperature += defaultHeat + nowWattage * 36f//超载时
-                }
+                temperature += heatChange()
+                super.updateTile()
             }
-
         }
+
+        fun heatChange(): Float = when {
+            nowWattage == 0f -> defaultHeat//待机时
+            nowWattage <= 1 -> defaultHeat + nowWattage * 18f//工作时
+            nowWattage > 1 -> defaultHeat + nowWattage * 36f//超载时
+            else -> 0f
+        } / specificHeat
 
         override fun draw() {
             super.draw()

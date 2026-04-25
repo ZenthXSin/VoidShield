@@ -15,7 +15,7 @@ import voidshield.shader.v2.DefaultShader
  */
 class HeaterBlock(name: String) : HeatBlock(name) {
 
-    /** 加热速率 (摄氏度/tick) - 支持负数（制冷模式） */
+    /** 加热速率 (摄氏度/tick) - 支持负数（降温模式） */
     var heatingRate: Float = 5f
 
     init {
@@ -25,7 +25,7 @@ class HeaterBlock(name: String) : HeatBlock(name) {
 
     override fun setStats() {
         super.setStats()
-        stats.add(Stat("rate-heating", HeatStat.catHeat), "${heatingRate * (1f / specificHeat)}°C/tick")
+        stats.add(Stat("rate-heating", HeatStat.catHeat), "${heatingRate / specificHeat}°C/tick")
     }
 
     open inner class HeaterBuild : HeatBuild() {
@@ -43,11 +43,11 @@ class HeaterBlock(name: String) : HeatBlock(name) {
             super.updateTile()
             if (heatingRate > 0f) {
                 if (efficiency > 0f && temperature < maxTemperature * overheatThreshold) {
-                    temperature += heatingRate
+                    temperature += heatingRate / specificHeat
                 }
             } else {
                 if (efficiency > 0f && temperature > 20f) {
-                    temperature += heatingRate
+                    temperature += heatingRate / specificHeat
                 }
             }
         }

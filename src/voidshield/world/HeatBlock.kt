@@ -34,7 +34,7 @@ open class HeatBlock(name: String) : Block(name) {
     var maxTemperature: Float = 2000f
 
     /** 比热容 - 升温速度 = 1 / specificHeat, 降温速度 = 0.1f / specificHeat  */
-    var specificHeat: Float = 1f
+    var specificHeat: Float = 10f
 
     /** 过热时每帧受到的伤害 */
     var overheatDamage: Float = 0.5f

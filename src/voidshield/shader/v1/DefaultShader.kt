@@ -43,6 +43,8 @@ open class DefaultShader : VSShaderLoader {
     val lifeCycle = HashMap<String, LifeCycleData>()
     var time = 0f
 
+    var isReady = false
+
     open fun setMeshAlpha(id: String, alpha: Float) {
         val data = meshMap[id] ?: return
         val mesh = data.mesh
@@ -358,9 +360,11 @@ open class DefaultShader : VSShaderLoader {
 
     override fun use() {
         shader.bind()
-        setUniformf()
-        captureScreen()
-        bindScreenTexture()
+        if (!isReady) {
+            setUniformf()
+            captureScreen()
+            bindScreenTexture()
+        }
         draw()
     }
 
@@ -371,6 +375,7 @@ open class DefaultShader : VSShaderLoader {
             meshMap.clear()
             meshVerticesCache.clear()
             lifeCycle.clear()
+            isReady = false
             time = 0f
         }
         Events.on(EventType.ResizeEvent::class.java) { disposeBuffer() }

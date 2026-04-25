@@ -6,13 +6,13 @@ on:
   pull_request:
     branches: [main, master]
   release:
-    types: [created]  # Release 创建时触发
+    types: [created]
 
 jobs:
   buildJar:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # 必须：允许上传 Release Asset
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
