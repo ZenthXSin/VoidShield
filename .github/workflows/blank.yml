@@ -40,10 +40,16 @@ jobs:
           name: ${{ github.event.repository.name }}
           path: build/libs/*.jar  # 通配符匹配，避免文件名不对
 
+      - name: Generate timestamp tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d-%H%M')"
+          echo "tag_name=$TAG" >> $GITHUB_OUTPUT    
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "TestAutoBuild"
+          tag_name: ${{ steps.tag.outputs.tag_name }}
           files: build/libs/*.jar  # 通配符匹配所有 jar
           generate_release_notes: true
           prerelease: true
