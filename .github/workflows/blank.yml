@@ -28,7 +28,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build mod jar
-        run: bash ./gradlew jar
+        run: bash ./gradlew deployGithub
 
       # 确认实际生成的文件名
       - name: List build outputs
