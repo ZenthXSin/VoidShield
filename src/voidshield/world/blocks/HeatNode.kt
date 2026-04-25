@@ -4,6 +4,7 @@ import arc.graphics.Color
 import arc.graphics.g2d.Draw
 import arc.graphics.g2d.Lines
 import arc.math.Mathf
+import arc.math.geom.Geometry
 import arc.math.geom.Point2
 import arc.struct.IntSeq
 import arc.struct.Seq
@@ -27,29 +28,22 @@ import mindustry.world.meta.StatUnit
 import voidshield.world.HeatBlock
 import voidshield.world.HeatStat
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
-/**
- * Heat node, link and configure behavior aligned with vanilla ItemBridge.
- */
 open class HeatNode(name: String) : HeatBlock(name) {
     companion object {
         private var otherReq: BuildPlan? = null
     }
 
     val timerCheckMoved = timers++
-    var range: Int = 5
-    var conductivity: Float = 0.5f
-
-    // for auto-link, mirrors ItemBridge.lastBuild behavior
+    var range = 5
+    var conductivity = 1f
     var lastBuild: HeatNodeBuild? = null
 
     init {
         update = true
         solid = true
-        consumesPower = true
         configurable = true
+        consumesPower = true
 
         config(Point2::class.java) { build: HeatNodeBuild, point: Point2 ->
             build.link = Point2.pack(point.x + build.tileX(), point.y + build.tileY())
@@ -66,20 +60,23 @@ open class HeatNode(name: String) : HeatBlock(name) {
         stats.add(Stat("conductivity", HeatStat.catHeat), conductivity, StatUnit.none)
     }
 
+    override fun init() {
+        super.init()
+        updateClipRadius((range + 0.5f) * tilesize)
+    }
+
     override fun drawPlanConfigTop(plan: BuildPlan, list: Eachable<BuildPlan>) {
         otherReq = null
         list.each { other ->
             if (other.block == this && plan != other && plan.config is Point2) {
                 val p = plan.config as Point2
-                if (p.x == other.x - plan.x && p.y == other.y - plan.y) {
+                if (p.equals(other.x - plan.x, other.y - plan.y)) {
                     otherReq = other
                 }
             }
         }
 
-        otherReq?.let {
-            drawBridge(plan, it.drawx(), it.drawy(), 0f)
-        }
+        otherReq?.let { drawBridge(plan, it.drawx(), it.drawy(), 0f) }
     }
 
     fun drawBridge(req: BuildPlan, ox: Float, oy: Float, flip: Float) {
@@ -100,32 +97,24 @@ open class HeatNode(name: String) : HeatBlock(name) {
         Draw.reset()
     }
 
-    override fun init() {
-        super.init()
-        updateClipRadius((range + 0.5f) * tilesize)
+    open fun positionsValid(x1: Int, y1: Int, x2: Int, y2: Int): Boolean {
+        if (x1 == x2) return abs(y1 - y2) <= range
+        if (y1 == y2) return abs(x1 - x2) <= range
+        return false
     }
 
-    open fun linkValid(tile: Tile?, other: Tile?): Boolean {
-        return linkValid(tile, other, true)
-    }
+    open fun linkValid(tile: Tile?, other: Tile?): Boolean = linkValid(tile, other, true)
 
     open fun linkValid(tile: Tile?, other: Tile?, checkDouble: Boolean): Boolean {
-        if (other == null || tile == null || !positionsValid(tile.x.toInt(), tile.y.toInt(), other.x.toInt(), other.y.toInt())) return false
+        if (tile == null || other == null) return false
+        if (!positionsValid(tile.x.toInt(), tile.y.toInt(), other.x.toInt(), other.y.toInt())) return false
 
-        val build = other.build as? HeatNodeBuild ?: return false
-        return ((other.block() == tile.block() && tile.block() == this) || (tile.block() !is HeatNode && other.block() == this))
-            && (build.team == tile.team() || tile.block() != this)
-            && (!checkDouble || build.link != tile.pos())
-    }
+        val otherBuild = other.build as? HeatNodeBuild ?: return false
 
-    open fun positionsValid(x1: Int, y1: Int, x2: Int, y2: Int): Boolean {
-        return if (x1 == x2) {
-            abs(y1 - y2) <= range
-        } else if (y1 == y2) {
-            abs(x1 - x2) <= range
-        } else {
-            false
-        }
+        return ((other.block() == tile.block() && tile.block() == this) ||
+            (tile.block() !is HeatNode && other.block() == this)) &&
+            (other.team() == tile.team() || tile.block() != this) &&
+            (!checkDouble || otherBuild.link != tile.pos())
     }
 
     open fun findLink(x: Int, y: Int): Tile? {
@@ -141,14 +130,14 @@ open class HeatNode(name: String) : HeatBlock(name) {
         super.drawPlace(x, y, rotation, valid)
 
         val link = findLink(x, y)
+
         for (i in 0..3) {
-            val dir = arc.math.geom.Geometry.d4[i]
             Drawf.dashLine(
                 Pal.placing,
-                x * tilesize + dir.x * (tilesize / 2f + 2f),
-                y * tilesize + dir.y * (tilesize / 2f + 2f),
-                x * tilesize + dir.x * range * tilesize.toFloat(),
-                y * tilesize + dir.y * range * tilesize.toFloat()
+                x * tilesize + Geometry.d4[i].x * (tilesize / 2f + 2f),
+                y * tilesize + Geometry.d4[i].y * (tilesize / 2f + 2f),
+                x * tilesize + Geometry.d4[i].x * range * tilesize.toFloat(),
+                y * tilesize + Geometry.d4[i].y * range * tilesize.toFloat()
             )
         }
 
@@ -157,13 +146,14 @@ open class HeatNode(name: String) : HeatBlock(name) {
         Lines.stroke(1f)
         if (link != null && abs(link.x.toInt() - x) + abs(link.y.toInt() - y) > 1) {
             val rot = link.absoluteRelativeTo(x, y)
-            val w = if (link.x.toInt() == x) tilesize.toFloat() else abs(link.x.toInt() - x) * tilesize - tilesize.toFloat()
-            val h = if (link.y.toInt() == y) tilesize.toFloat() else abs(link.y.toInt() - y) * tilesize - tilesize.toFloat()
+            val w = if (link.x.toInt() == x) tilesize.toFloat() else abs(link.x.toInt() - x) * tilesize - tilesize
+            val h = if (link.y.toInt() == y) tilesize.toFloat() else abs(link.y.toInt() - y) * tilesize - tilesize
+
             Lines.rect((x + link.x.toInt()) / 2f * tilesize - w / 2f, (y + link.y.toInt()) / 2f * tilesize - h / 2f, w, h)
             Draw.rect(
                 "bridge-arrow",
-                link.x.toInt() * tilesize + arc.math.geom.Geometry.d4(rot.toInt()).x * tilesize.toFloat(),
-                link.y.toInt() * tilesize + arc.math.geom.Geometry.d4(rot.toInt()).y * tilesize.toFloat(),
+                link.x.toInt() * tilesize + Geometry.d4(rot).x * tilesize,
+                link.y.toInt() * tilesize + Geometry.d4(rot).y * tilesize,
                 link.absoluteRelativeTo(x, y) * 90f
             )
         }
@@ -187,8 +177,8 @@ open class HeatNode(name: String) : HeatBlock(name) {
     }
 
     open inner class HeatNodeBuild : HeatBuild() {
-        var link: Int = -1
-        val incoming = IntSeq(false, 4)
+        var link = -1
+        var incoming = IntSeq(false, 4)
         var time = -8f
         var timeSpeed = 0f
         var wasMoved = false
@@ -201,7 +191,7 @@ open class HeatNode(name: String) : HeatBlock(name) {
         override fun playerPlaced(config: Any?) {
             super.playerPlaced(config)
 
-            val found = findLink(tileX(), tileY())
+            val found = findLink(tile.x.toInt(), tile.y.toInt())
             if (linkValid(tile, found) && link != found!!.pos() && !proximity.contains(found.build)) {
                 found.build.configure(tile.pos())
             }
@@ -210,7 +200,6 @@ open class HeatNode(name: String) : HeatBlock(name) {
         }
 
         override fun onConfigureBuildTapped(other: Building): Boolean {
-            // reverse connection
             if (other is HeatNodeBuild && other.link == pos()) {
                 configure(other.pos())
                 other.configure(-1)
@@ -218,26 +207,18 @@ open class HeatNode(name: String) : HeatBlock(name) {
             }
 
             if (linkValid(tile, other.tile)) {
-                configure(if (link == other.pos()) -1 else other.pos())
+                if (link == other.pos()) configure(-1) else configure(other.pos())
                 return false
             }
 
             return true
         }
 
-        fun checkLink() {
-            if (link == -1) return
-            val target = world.tile(link)
-            if (!linkValid(tile, target, false)) {
-                link = -1
-            }
-        }
-
         fun checkIncoming() {
             var idx = 0
             while (idx < incoming.size) {
-                val pos = incoming.items[idx]
-                val other = world.tile(pos)
+                val i = incoming.items[idx]
+                val other = world.tile(i)
                 val otherBuild = other?.build as? HeatNodeBuild
                 if (!linkValid(tile, other, false) || otherBuild?.link != tile.pos()) {
                     incoming.removeIndex(idx)
@@ -257,65 +238,46 @@ open class HeatNode(name: String) : HeatBlock(name) {
             time += timeSpeed * delta()
 
             setGradient()
-            checkLink()
             checkIncoming()
 
-            val remote = world.tile(link)?.build as? HeatNodeBuild
-            if (remote == null || !linkValid(tile, remote.tile, false)) {
-                warmup = 0f
+            val other = world.tile(link)
+            if (!linkValid(tile, other)) {
+                warmup = Mathf.approachDelta(warmup, 0f, 1f / 30f)
             } else {
-                remote.incoming.addUnique(pos())
+                (other!!.build as HeatNodeBuild).incoming.addUnique(pos())
                 warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
-
-                if (pos() < remote.pos()) {
-                    exchangeHeatBridge(remote)
-                }
+                exchangeHeatBridge(other.build as HeatNodeBuild)
             }
 
-            for (i in 0 until proximity.size) {
-                val other = proximity[i] as? HeatBuild ?: continue
-                if (other === this) continue
-                if (other is HeatNodeBuild && (link == other.pos() || other.link == pos())) continue
-                if (pos() < other.pos()) {
-                    exchangeHeatAdjacent(other)
-                }
-            }
-
+            exchangeHeatAdjacent()
             temperature = clampTemperature(this, temperature)
         }
 
         fun exchangeHeatBridge(other: HeatNodeBuild) {
-            val delta = other.temperature - temperature
-            if (Mathf.zero(delta)) return
-
-            val bridgeEfficiency = min(efficiency, other.efficiency)
-            if (bridgeEfficiency <= 0f) return
-
-            val otherConductivity = (other.block as HeatNode).conductivity
-            val transferRate = Mathf.clamp(min(conductivity, otherConductivity) * 0.18f * Time.delta * bridgeEfficiency, 0f, 0.45f)
-            transferHeat(other, transferRate)
+            if (pos() >= other.pos()) return
+            val pairConductivity = Mathf.clamp(minOf(conductivity, (other.block as HeatNode).conductivity), 0f, 5f)
+            val rate = Mathf.clamp(pairConductivity * 0.18f * Time.delta, 0f, 0.45f)
+            transferHeat(other, rate)
         }
 
-        fun exchangeHeatAdjacent(other: HeatBuild) {
-            val delta = other.temperature - temperature
-            if (Mathf.zero(delta)) return
-
-            val transferRate = Mathf.clamp(conductivity * 0.08f * Time.delta, 0f, 0.25f)
-            transferHeat(other, transferRate)
+        fun exchangeHeatAdjacent() {
+            for (i in 0 until proximity.size) {
+                val other = proximity[i] as? HeatBuild ?: continue
+                if (other === this || pos() >= other.pos()) continue
+                if (other is HeatNodeBuild && (other.pos() == link || other.link == pos())) continue
+                val rate = Mathf.clamp(conductivity * 0.08f * Time.delta, 0f, 0.25f)
+                transferHeat(other, rate)
+            }
         }
 
         fun transferHeat(other: HeatBuild, rate: Float) {
             if (rate <= 0f) return
-
             val delta = other.temperature - temperature
             if (Mathf.zero(delta)) return
 
-            val selfSpecificHeat = max((block as HeatBlock).specificHeat, 0.001f)
-            val otherSpecificHeat = max((other.block as HeatBlock).specificHeat, 0.001f)
-
-            val energyTransfer = delta * rate
-            temperature = clampTemperature(this, temperature + energyTransfer / selfSpecificHeat)
-            other.temperature = clampTemperature(other, other.temperature - energyTransfer / otherSpecificHeat)
+            val change = delta * rate
+            temperature = clampTemperature(this, temperature + change)
+            other.temperature = clampTemperature(other, other.temperature - change)
             moved = true
         }
 
@@ -328,8 +290,7 @@ open class HeatNode(name: String) : HeatBlock(name) {
 
             for (i in 1..range) {
                 for (j in 0..3) {
-                    val dir = arc.math.geom.Geometry.d4[j]
-                    val other = tile.nearby(dir.x * i, dir.y * i)
+                    val other = tile.nearby(Geometry.d4[j].x * i, Geometry.d4[j].y * i)
                     if (linkValid(tile, other)) {
                         val linked = other!!.pos() == link
                         Drawf.select(
@@ -344,34 +305,12 @@ open class HeatNode(name: String) : HeatBlock(name) {
         }
 
         override fun drawSelect() {
-            val target = world.tile(link)
-            if (linkValid(tile, target, false)) {
-                drawInput(target!!)
-            }
-            incoming.each { pos ->
-                val other = world.tile(pos)
-                if (other != null) drawInput(other)
-            }
+            if (linkValid(tile, world.tile(link))) drawInput(world.tile(link)!!)
+            incoming.each { pos -> world.tile(pos)?.let { drawInput(it) } }
             Draw.reset()
         }
 
-        override fun draw() {
-            super.draw()
-            val target = world.tile(link)
-            if (!linkValid(tile, target, false)) return
-
-            Draw.alpha(maxOf(warmup, 0.25f) * Renderer.bridgeOpacity)
-            drawLink(getTemperatureColor(this), target!!.build as HeatNodeBuild)
-            Draw.reset()
-        }
-
-        fun drawLink(color: Color, other: HeatNodeBuild) {
-            val from = getEdgePosition(tile, other.tile)
-            val to = getEdgePosition(other.tile, tile)
-            Drawf.line(color, from[0], from[1], to[0], to[1])
-        }
-
-        fun drawInput(other: Tile) {
+        private fun drawInput(other: Tile) {
             if (!linkValid(tile, other, false)) return
             val linked = other.pos() == link
 
@@ -390,11 +329,9 @@ open class HeatNode(name: String) : HeatBlock(name) {
             Draw.color(Pal.gray)
             Lines.stroke(2.5f)
             Lines.square(ox, oy, 2f, 45f)
-            Lines.stroke(2.5f)
             Lines.line(tx + Tmp.v2.x, ty + Tmp.v2.y, ox - Tmp.v2.x, oy - Tmp.v2.y)
 
             val color = (if (linked) Pal.place else Pal.accent).toFloatBits()
-
             Draw.color(color)
             Lines.stroke(1f)
             Lines.line(tx + Tmp.v2.x, ty + Tmp.v2.y, ox - Tmp.v2.x, oy - Tmp.v2.y)
@@ -405,7 +342,24 @@ open class HeatNode(name: String) : HeatBlock(name) {
             Draw.mixcol()
         }
 
-        fun getEdgePosition(from: Tile, to: Tile): FloatArray {
+        override fun draw() {
+            super.draw()
+
+            val target = world.tile(link)?.build as? HeatNodeBuild ?: return
+            if (!linkValid(tile, target.tile, false) || Mathf.zero(Renderer.bridgeOpacity)) return
+
+            Draw.alpha(maxOf(warmup, 0.25f) * Renderer.bridgeOpacity)
+            drawLink(getTemperatureColor(this), target)
+            Draw.reset()
+        }
+
+        private fun drawLink(color: Color, other: HeatNodeBuild) {
+            val from = getEdgePosition(tile, other.tile)
+            val to = getEdgePosition(other.tile, tile)
+            Drawf.line(color, from[0], from[1], to[0], to[1])
+        }
+
+        private fun getEdgePosition(from: Tile, to: Tile): FloatArray {
             val dx = to.x - from.x
             val dy = to.y - from.y
             val offsetX = if (dx > 0) tilesize / 2f else if (dx < 0) -tilesize / 2f else 0f
@@ -413,49 +367,36 @@ open class HeatNode(name: String) : HeatBlock(name) {
             return floatArrayOf(from.drawx() + offsetX, from.drawy() + offsetY)
         }
 
-        override fun config(): Any? {
-            return Point2.unpack(link).sub(tileX(), tileY())
+        override fun shouldConsume(): Boolean {
+            return linkValid(tile, world.tile(link)) && enabled
         }
 
-        override fun version(): Byte = 3
-
-        override fun write(w: Writes) {
-            super.write(w)
-            w.i(link)
-            w.f(warmup)
-            w.b(incoming.size)
-            for (i in 0 until incoming.size) {
-                w.i(incoming.items[i])
-            }
-            w.bool(wasMoved || moved)
+        override fun config(): Point2 {
+            return Point2.unpack(link).sub(tile.x.toInt(), tile.y.toInt())
         }
 
-        override fun read(r: Reads, revision: Byte) {
-            super.read(r, revision)
-            link = when {
-                revision >= 3 -> r.i()
-                revision == 1.toByte() -> {
-                    val amount = r.b().toInt().coerceAtLeast(0)
-                    var first = -1
-                    for (i in 0 until amount) {
-                        val saved = r.i()
-                        if (i == 0) first = saved
-                    }
-                    first
-                }
-                else -> r.i()
-            }
+        override fun version(): Byte = 1
 
-            if (revision >= 3) {
-                warmup = r.f()
-                val amount = r.b().toInt().coerceAtLeast(0)
-                incoming.clear()
-                for (i in 0 until amount) {
-                    incoming.add(r.i())
-                }
-                val movedNow = r.bool()
-                moved = movedNow
-                wasMoved = movedNow
+        override fun write(write: Writes) {
+            super.write(write)
+            write.i(link)
+            write.f(warmup)
+            write.b(incoming.size)
+            for (i in 0 until incoming.size) write.i(incoming.items[i])
+            write.bool(wasMoved || moved)
+        }
+
+        override fun read(read: Reads, revision: Byte) {
+            super.read(read, revision)
+            link = read.i()
+            warmup = read.f()
+            val links = read.b().toInt().coerceAtLeast(0)
+            incoming.clear()
+            for (i in 0 until links) incoming.add(read.i())
+
+            if (revision >= 1) {
+                wasMoved = read.bool()
+                moved = wasMoved
             }
         }
     }
