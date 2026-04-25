@@ -154,8 +154,9 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
         fun addCircle(x: Float, y: Float, radius: Float, effect: Float, lifeTime: Float): SpaceDate.CircleZone? {
             val zone = addCircle(x, y, radius, effect) ?: return null
-            VsVars.shaders.spaceDistortion.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius)
-            VsVars.shaders.spaceDistortion.setLifeCycle("[Zone]${zone.id}",lifeTime * 100,0.4f,false) {
+            VsVars.shaders.spaceDistortion.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius * 5)
+            VsVars.shaders.spaceDistortion.setLifeCycle("[Zone]${zone.id}",lifeTime * 40,0.5f,false)
+            Time.run(lifeTime * 30) {
                 removeZone(zone)
             }
             return zone

@@ -2,6 +2,11 @@ package voidshield.other
 
 import arc.Core
 import arc.Events
+import arc.assets.loaders.TextureLoader.TextureParameter
+import arc.func.Cons
+import arc.graphics.Texture
+import arc.graphics.Texture.TextureFilter
+import arc.graphics.Texture.TextureWrap
 import arc.graphics.g2d.Draw
 import arc.math.geom.Rect
 import arc.util.Log
@@ -13,11 +18,11 @@ import mindustry.logic.LCategory
 import voidshield.entities.skills.BlackHole
 import voidshield.other.dateTypes.SpaceDate
 import voidshield.other.extends.other.Settings
-import voidshield.shader.v1.JsonShaderLoader
-import voidshield.world.effects.effect.TeleportEffect.loadJson
 import voidshield.shader.v1.DefaultShader
-import voidshield.world.shaders.HeatShader
+import voidshield.shader.v1.JsonShaderLoader
 import voidshield.shader.v1.TestShader
+import voidshield.world.effects.effect.TeleportEffect.loadJson
+import voidshield.world.shaders.HeatShader
 
 object VsVars {
     var world = World()
