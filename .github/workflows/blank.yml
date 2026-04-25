@@ -39,4 +39,5 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          tag: "Test Auto Build"
           files: build/libs/${{ github.event.repository.name }}.jar
