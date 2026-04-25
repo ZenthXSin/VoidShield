@@ -50,10 +50,6 @@ open class HeatNode(name: String) : HeatBlock(name) {
         config(Point2::class.java) { build: HeatNodeBuild, point: Point2 ->
             build.link = Point2.pack(point.x + build.tileX(), point.y + build.tileY())
         }
-
-        config(Int::class.javaPrimitiveType) { build: HeatNodeBuild, value: Int ->
-            build.link = value
-        }
     }
 
     override fun setStats() {
@@ -112,11 +108,11 @@ open class HeatNode(name: String) : HeatBlock(name) {
         if (!positionsValid(tile.x.toInt(), tile.y.toInt(), other.x.toInt(), other.y.toInt())) return false
 
         val otherBuild = other.build as? HeatNodeBuild ?: return false
+        if (other.block() != this) return false
+        if (other.team() != tile.team()) return false
+        if (checkDouble && otherBuild.link == tile.pos()) return false
 
-        return ((other.block() == tile.block() && tile.block() == this) ||
-            (tile.block() !is HeatNode && other.block() == this)) &&
-            (other.team() == tile.team() || tile.block() != this) &&
-            (!checkDouble || otherBuild.link != tile.pos())
+        return true
     }
 
     open fun findLink(x: Int, y: Int): Tile? {
@@ -151,9 +147,7 @@ open class HeatNode(name: String) : HeatBlock(name) {
             val w = if (link.x.toInt() == x) tilesize.toFloat() else abs(link.x.toInt() - x) * tilesize - tilesize
             val h = if (link.y.toInt() == y) tilesize.toFloat() else abs(link.y.toInt() - y) * tilesize - tilesize
 
-            Lines.rect((x + link.x.toInt() / 2f * tilesize - w.toFloat() / 2f), (y + link.y.toInt()) / 2f * tilesize - h.toFloat() / 2f, w.toFloat(),
-                h.toFloat()
-            )
+            Lines.rect((x + link.x.toInt()) / 2f * tilesize - w.toFloat() / 2f, (y + link.y.toInt()) / 2f * tilesize - h.toFloat() / 2f, w.toFloat(), h.toFloat())
             Lines.square(
                 (link.x.toInt() * tilesize + Geometry.d4(rot.toInt()).x * tilesize).toFloat(),
                 (link.y.toInt() * tilesize + Geometry.d4(rot.toInt()).y * tilesize).toFloat(),
@@ -205,7 +199,7 @@ open class HeatNode(name: String) : HeatBlock(name) {
             if (other is HeatNodeBuild && other.link == pos()) {
                 configure(other.pos())
                 other.configure(-1)
-                return true
+                return false
             }
 
             if (linkValid(tile, other.tile)) {
@@ -224,9 +218,9 @@ open class HeatNode(name: String) : HeatBlock(name) {
                 val otherBuild = other?.build as? HeatNodeBuild
                 if (!linkValid(tile, other, false) || otherBuild?.link != tile.pos()) {
                     incoming.removeIndex(idx)
-                    idx--
+                } else {
+                    idx++
                 }
-                idx++
             }
         }
 
@@ -242,49 +236,49 @@ open class HeatNode(name: String) : HeatBlock(name) {
             setGradient()
             checkIncoming()
 
-            val other = world.tile(link)
-            if (!linkValid(tile, other)) {
-                warmup = Mathf.approachDelta(warmup, 0f, 1f / 30f)
-            } else {
-                (other!!.build as HeatNodeBuild).incoming.addUnique(pos())
+            val other = world.tile(link)?.build as? HeatNodeBuild
+            if (other != null && linkValid(tile, other.tile)) {
+                other.incoming.addUnique(pos())
                 warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
-                exchangeHeatBridge(other.build as HeatNodeBuild)
+                exchangeHeat(other, bridgeRate(other))
+            } else {
+                warmup = Mathf.approachDelta(warmup, 0f, 1f / 30f)
             }
 
             exchangeHeatAdjacent()
-            temperature = clampTemperature(this, temperature)
+            temperature = clampTemperature(temperature)
         }
 
-        fun exchangeHeatBridge(other: HeatNodeBuild) {
+        fun bridgeRate(other: HeatNodeBuild): Float {
+            val otherNode = other.block as HeatNode
+            return Mathf.clamp(minOf(conductivity, otherNode.conductivity), 0f, 5f) * 0.18f
+        }
+
+        fun exchangeHeat(other: HeatBuild, rawRate: Float) {
             if (pos() >= other.pos()) return
-            val pairConductivity = Mathf.clamp(minOf(conductivity, (other.block as HeatNode).conductivity), 0f, 5f)
-            val rate = Mathf.clamp(pairConductivity * 0.18f * Time.delta, 0f, 0.45f)
-            transferHeat(other, rate)
+            val rate = Mathf.clamp(rawRate * Time.delta, 0f, 0.45f)
+            if (rate <= 0f) return
+
+            val delta = other.temperature - temperature
+            if (Mathf.zero(delta)) return
+
+            val change = delta * rate
+            temperature = clampTemperature(temperature + change)
+            other.temperature = clampTemperature(other.temperature - change)
+            moved = true
         }
 
         fun exchangeHeatAdjacent() {
             for (i in 0 until proximity.size) {
                 val other = proximity[i] as? HeatBuild ?: continue
-                if (other === this || pos() >= other.pos()) continue
+                if (other === this) continue
                 if (other is HeatNodeBuild && (other.pos() == link || other.link == pos())) continue
-                val rate = Mathf.clamp(conductivity * 0.08f * Time.delta, 0f, 0.25f)
-                transferHeat(other, rate)
+                exchangeHeat(other, conductivity * 0.08f)
             }
         }
 
-        fun transferHeat(other: HeatBuild, rate: Float) {
-            if (rate <= 0f) return
-            val delta = other.temperature - temperature
-            if (Mathf.zero(delta)) return
-
-            val change = delta * rate
-            temperature = clampTemperature(this, temperature + change)
-            other.temperature = clampTemperature(other, other.temperature - change)
-            moved = true
-        }
-
-        fun clampTemperature(build: HeatBuild, value: Float): Float {
-            return Mathf.clamp(value, 0f, (build.block as HeatBlock).maxTemperature)
+        fun clampTemperature(value: Float): Float {
+            return Mathf.clamp(value, 0f, (block as HeatBlock).maxTemperature)
         }
 
         override fun drawConfigure() {
