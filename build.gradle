@@ -6,8 +6,13 @@ version '1.0'
 
 ext{
     mindustryVersion = 'v155.4'
-    sdkRoot = "E:/new/android-sdk/"
-    githubSdkRoot = "$GITHUB_PATH"
+    localSdkRoot = findProperty("localSdkRoot")
+            ?: findProperty("sdkRoot")
+            ?: "E:/new/android-sdk/"
+    githubSdkRoot = findProperty("githubSdkRoot")
+            ?: System.getenv("ANDROID_HOME")
+            ?: System.getenv("ANDROID_SDK_ROOT")
+            ?: ""
 }
 
 sourceSets.main.kotlin.srcDirs = ["src"]
@@ -50,6 +55,7 @@ task jarAndroid{
     dependsOn "jar"
 
     doLast{
+        def sdkRoot = localSdkRoot ?: ""
         if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
 
         def platformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
@@ -59,8 +65,9 @@ task jarAndroid{
         //collect dependencies needed for desugaring
         def dependencies = (configurations.compileClasspath.asList() + configurations.runtimeClasspath.asList() + [new File(platformRoot, "android.jar")]).collect{ "--classpath $it.path" }.join(" ")
 
-        //dex and desugar files - this requires d8 in your PATH
-        "E:/new/android-sdk/build-tools/36.1.0/d8.bat $dependencies --min-api 14 --output ${project.archivesBaseName}Android.jar ${project.archivesBaseName}Desktop.jar"
+        //dex and desugar files
+        def d8 = findD8(sdkRoot)
+        "$d8 $dependencies --min-api 14 --output ${project.archivesBaseName}Android.jar ${project.archivesBaseName}Desktop.jar"
                 .execute(null, new File("$buildDir/libs")).waitForProcessOutput(System.out, System.err)
     }
 }
@@ -90,7 +97,8 @@ task jarGithubAndroid{
     dependsOn "jar"
 
     doLast{
-        if(!githubSdkRoot || !new File(githubSdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
+        def sdkRoot = githubSdkRoot ?: ""
+        if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
 
         def platformRoot = new File("$githubSdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
 
@@ -99,10 +107,27 @@ task jarGithubAndroid{
         //collect dependencies needed for desugaring
         def dependencies = (configurations.compileClasspath.asList() + configurations.runtimeClasspath.asList() + [new File(platformRoot, "android.jar")]).collect{ "--classpath $it.path" }.join(" ")
 
-        //dex and desugar files - this requires d8 in your PATH
-        "d8 $dependencies --min-api 14 --output ${project.archivesBaseName}Android.jar ${project.archivesBaseName}Desktop.jar"
+        //dex and desugar files
+        def d8 = findD8(sdkRoot)
+        "$d8 $dependencies --min-api 14 --output ${project.archivesBaseName}Android.jar ${project.archivesBaseName}Desktop.jar"
             .execute(null, new File("$buildDir/libs")).waitForProcessOutput(System.out, System.err)
     }
+}
+
+def findD8(String sdkRoot){
+    if(sdkRoot && new File(sdkRoot).exists()){
+        def buildTools = new File("$sdkRoot/build-tools/")
+        if(buildTools.exists()){
+            def newest = buildTools.listFiles()?.findAll { it.directory }?.sort()?.last()
+            if(newest != null){
+                def win = new File(newest, "d8.bat")
+                if(win.exists()) return win.absolutePath
+                def unix = new File(newest, "d8")
+                if(unix.exists()) return unix.absolutePath
+            }
+        }
+    }
+    return "d8"
 }
 
 task deployGithub(type: Jar){
