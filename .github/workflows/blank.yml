@@ -40,17 +40,38 @@ jobs:
           name: ${{ github.event.repository.name }}
           path: build/libs/*.jar  # 通配符匹配，避免文件名不对
 
-      - name: Generate timestamp tag
-        id: tag
+      - name: Get push title and description
+        id: push_info
+        shell: bash
         run: |
-          TAG="v$(date +'%Y.%m.%d-%H%M')"
-          echo "tag_name=$TAG" >> $GITHUB_OUTPUT    
+          MESSAGE="$(jq -r '.head_commit.message' "$GITHUB_EVENT_PATH")"
+
+          TITLE="$(printf "%s" "$MESSAGE" | head -n 1)"
+          BODY="$(printf "%s" "$MESSAGE" | tail -n +2 | sed '/./,$!d')"
+
+          TAG_NAME="$(printf "%s" "$TITLE" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[[:space:]]\+/-/g' \
+            | sed 's/[^a-zA-Z0-9._-]//g')"
+
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="release-${GITHUB_SHA::7}"
+          fi
+
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+          cat > release_body.md <<EOF
+          $BODY
+          EOF
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.tag_name }}
-          files: build/libs/*.jar  # 通配符匹配所有 jar
+          tag_name: ${{ steps.push_info.outputs.tag_name }}
+          name: ${{ steps.push_info.outputs.title }}
+          body_path: release_body.md
+          files: build/libs/*.jar
           generate_release_notes: true
           prerelease: true
         env:
