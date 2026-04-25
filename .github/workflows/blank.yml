@@ -3,10 +3,12 @@ name: Java CI
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  release:
-    types: [created]
+  # ❌ 删除这两行，PR 不需要发 release
+  # pull_request:
+  #   branches: [main, master]
+  # ❌ 删除 release 触发器，避免和 action-gh-release 冲突
+  # release:
+  #   types: [created]
 
 jobs:
   buildJar:
@@ -30,7 +32,6 @@ jobs:
       - name: Build mod jar
         run: bash ./gradlew deployGithub
 
-      # 确认实际生成的文件名
       - name: List build outputs
         run: ls -la build/libs/
 
@@ -38,38 +39,41 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}
-          path: build/libs/*.jar  # 通配符匹配，避免文件名不对
+          path: build/libs/*.jar
 
-      - name: Generate timestamp tag
-        id: tag
-        run: |
-          TAG="v$(date +'%Y.%m.%d-%H%M')"
-          echo "tag_time=$TAG" >> $GITHUB_OUTPUT       
-
-      - name: Get push title and description
-        id: push_info
+      - name: Generate safe tag and release info
+        id: release_info
         shell: bash
         run: |
-          MESSAGE="$(jq -r '.head_commit.message' "$GITHUB_EVENT_PATH")"
-
+          # 获取 commit 信息
+          MESSAGE="$(jq -r '.head_commit.message' "$GITHUB_EVENT_PATH" 2>/dev/null || echo 'Auto Build')"
           TITLE="$(printf "%s" "$MESSAGE" | head -n 1)"
           BODY="$(printf "%s" "$MESSAGE" | tail -n +2 | sed '/./,$!d')"
 
-          # 用 commit 标题生成安全的 tag 名称
-          TAG_NAME="$(printf "%s" "$TITLE" \
+          # 生成安全的 tag 名称：
+          # 1. 转小写，空格变 -
+          # 2. 非字母数字变 -
+          # 3. 合并连续的 -
+          # 4. 去除开头和结尾的 - 和 .
+          SAFE_TAG="$(printf "%s" "$TITLE" \
             | tr '[:upper:]' '[:lower:]' \
-            | sed 's/[[:space:]]\+/-/g' \
-            | sed 's/[^a-zA-Z0-9._-]//g')"
+            | sed 's/[^a-z0-9]/-/g' \
+            | sed 's/-\+/-/g' \
+            | sed 's/^[-.]*//;s/[-.]*$//')"
 
-          # 如果 tag_name 为空，使用 SHA 前 7 位作为 tag
-          if [ -z "$TAG_NAME" ]; then
-            TAG_NAME="release-${GITHUB_SHA::7}"
+          # 如果 commit 全是中文，SAFE_TAG 为空，用固定前缀
+          if [ -z "$SAFE_TAG" ]; then
+            SAFE_TAG="build"
           fi
 
-          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          # 加上时间戳确保唯一性，且不以 - 结尾
+          TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+          TAG_NAME="${SAFE_TAG}-${TIMESTAMP}"
 
-          # 生成 release 描述文件
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+
+          # 生成 release body
           cat > release_body.md <<EOF
           $BODY
           EOF
@@ -77,8 +81,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.push_info.outputs.tag_name }}
-          name: ${{ steps.push_info.outputs.title }}
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          name: ${{ steps.release_info.outputs.title }}
           body_path: release_body.md
           files: build/libs/*.jar
           generate_release_notes: true
