@@ -23,3 +23,5 @@ minGameVersion: 154
 
 #whether the mod should be loaded in multiplayer games
 multiplayerCompatible: true
+
+repo: github.com/ZenthXSin/VoidShield
