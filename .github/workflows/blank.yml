@@ -39,6 +39,11 @@ jobs:
         with:
           name: ${{ github.event.repository.name }}
           path: build/libs/*.jar  # 通配符匹配，避免文件名不对
+      - name: Generate timestamp tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d-%H%M')"
+          echo "tag_Time=$TAG" >> $GITHUB_OUTPUT       
 
       - name: Get push title and description
         id: push_info
@@ -68,8 +73,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.push_info.outputs.tag_name }}
-          name: ${{ steps.push_info.outputs.title }}
+          tag_name: ${{ steps.push_info.outputs.tag_Time }}
+          name: ${{ steps.push_info.outputs.tag_name }}
           body_path: release_body.md
           files: build/libs/*.jar
           generate_release_notes: true
