@@ -30,7 +30,7 @@ data class LifeCycleData(
 
 open class DefaultShader(vert: String = "default", frag: String = "default") : VSShaderLoader {
 
-    override var shader = ShaderManage.getShader("default", "default", VsVars.modName)
+    override var shader = ShaderManage.getShader(vert, frag, VsVars.modName)
     override var meshMap: HashMap<String, VSShaderLoader.MeshData> = hashMapOf()
     val meshVerticesCache = HashMap<String, FloatArray>()
 
