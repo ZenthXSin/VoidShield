@@ -10,7 +10,7 @@ import kotlin.math.min
 
 class HeatCatheter(nane: String): HeatBlock(nane) {
     /** 每tick传导的热量（比热容不参与计算）*/
-    var rate = 1f
+    var rate = 0.9f
 
     init {
         rotate = true
