@@ -20,67 +20,71 @@ import voidshield.world.shaders.HeatShader
 import voidshield.shader.v1.TestShader
 
 object VsVars {
-     var world = World()
+    var world = World()
 
-     var modName = "voidshield"
+    var modName = "voidshield"
 
-     var shaders = Shaders()
+    var shaders = Shaders()
 
-     var logicCategory:LogicCategory = LogicCategory()
+    var logicCategory: LogicCategory = LogicCategory()
 
-     var settings: Settings = Settings()
+    var settings: Settings = Settings()
 
-     fun load() {
-          Log.info("[VsVars] VsVars Loading")
-          world.load()
-          shaders.load()
-          JsonShaderLoader.loadJson(modName)
-          Events.run(EventType.ClientLoadEvent::class.java) {
-               loadJson(modName)
-               settings.init()
-          }
-     }
+    fun load() {
+        Log.info("[VsVars] VsVars Loading")
+        world.load()
+        shaders.load()
+        JsonShaderLoader.loadJson(modName)
+        Events.run(EventType.ClientLoadEvent::class.java) {
+            loadJson(modName)
+            settings.init()
+        }
+    }
 
 }
+
 class Skills {
-     var blackHole: BlackHole = BlackHole()
+    var blackHole: BlackHole = BlackHole()
 }
+
 class Shaders {
-     var shaders: MutableMap<String, DefaultShader> = mutableMapOf()
-     var heatShader: HeatShader = addShader("HeatShader", HeatShader()) as HeatShader
-     var defaultShader: DefaultShader = addShader("DefaultShader", DefaultShader())
-     fun addShader(name:String, shader: DefaultShader): DefaultShader {
-          shaders[name] = shader
-          return shader
-     }
-     fun load() {
-          Events.run(EventType.Trigger.postDraw) {
-               Draw.draw(Layer.effect) {
-                    shaders.forEach { (_, shader) ->
-                         if (shader.meshMap.isNotEmpty()) {
-                              shader.use()
-                         }
+    var shaders: MutableMap<String, DefaultShader> = mutableMapOf()
+    var heatShader: HeatShader = addShader("HeatShader", HeatShader()) as HeatShader
+    var spaceDistortion: DefaultShader = addShader("SpaceDistortion", DefaultShader(frag = "spaceDistortion"))
+    var defaultShader: DefaultShader = addShader("DefaultShader", DefaultShader())
+    fun addShader(name: String, shader: DefaultShader): DefaultShader {
+        shaders[name] = shader
+        return shader
+    }
+
+    fun load() {
+        Events.run(EventType.Trigger.postDraw) {
+            Draw.draw(Layer.effect) {
+                shaders.forEach { (_, shader) ->
+                    if (shader.meshMap.isNotEmpty()) {
+                        shader.use()
                     }
-                    TestShader.use()
-               }
-          }
-     }
+                }
+                TestShader.use()
+            }
+        }
+    }
 
 }
 
 class World {
-     var spaceDate: SpaceDate = SpaceDate()
-     fun load() {
-          Events.on(EventType.WorldLoadBeginEvent::class.java) {
-               spaceDate.clear()                              
-          }
-          Events.on(EventType.WorldLoadEndEvent::class.java) {
-          spaceDate.updateBounds(Rect(0f,0f,Vars.world.width() * 8f, Vars.world.height() * 8f))
-          Log.info("[World] SpaceDate bounds set to: ${spaceDate.bounds}")
-          }
-     }
+    var spaceDate: SpaceDate = SpaceDate()
+    fun load() {
+        Events.on(EventType.WorldLoadBeginEvent::class.java) {
+            spaceDate.clear()
+        }
+        Events.on(EventType.WorldLoadEndEvent::class.java) {
+            spaceDate.updateBounds(Rect(0f, 0f, Vars.world.width() * 8f, Vars.world.height() * 8f))
+            Log.info("[World] SpaceDate bounds set to: ${spaceDate.bounds}")
+        }
+    }
 }
 
 class LogicCategory {
-     var voidShield = LCategory("VoidShield", Pal.accent, Core.atlas.getDrawable("${VsVars.modName}-maxVoidShield"))
+    var voidShield = LCategory("VoidShield", Pal.accent, Core.atlas.getDrawable("${VsVars.modName}-maxVoidShield"))
 }

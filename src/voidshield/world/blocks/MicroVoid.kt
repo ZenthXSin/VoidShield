@@ -19,8 +19,14 @@ import mindustry.graphics.Drawf
 import mindustry.graphics.Layer
 import mindustry.graphics.Pal
 import mindustry.graphics.Shaders
+import mindustry.ui.Bar
+import mindustry.world.meta.Stat
+import voidshield.other.VsVars
 import voidshield.other.dateTypes.SpaceDate
 import voidshield.other.interfaces.SpaceDateInterface
+import voidshield.world.HeatStat
+import voidshield.world.blocks.VelumSolvent.VelumSolventBuild
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 
@@ -30,18 +36,52 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
     var maxArea: Float = 50f
 
+    var defaultHeat: Float = 5f//待机时升温速度
+
     init {
         updateClipRadius(Vars.world.width() * 8f)
+    }
+
+    override fun setStats() {
+        super.setStats()
+        stats.add(Stat("最大裂隙数量", VoidShield.voidShield), "$maxFissureCount")
+        stats.add(Stat("最大立场面积", VoidShield.voidShield), "${maxArea}²")
+        stats.add(Stat("[blue]待机时", HeatStat.catHeat), "+${defaultHeat * (1f / specificHeat)}°C/tick")
+        stats.add(
+            Stat("[green]工作时", HeatStat.catHeat),
+            "+($defaultHeat + 功率 * 18) * (1 / ${specificHeat}) °C/tick"
+        )
+        stats.add(Stat("[red]超载时", HeatStat.catHeat), "+($defaultHeat + 功率 * 36) * (1 / ${specificHeat}) °C/tick")
+    }
+
+    override fun setBars() {
+        super.setBars()
+        addBar("wattage") { build: Building ->
+            val hb = build as MicroVoidBuild
+            Bar(
+                { "升温速度：" + hb.heatChange().roundToInt() + "℃/tick" },
+                { Pal.accent },
+                { hb.nowWattage }
+            )
+        }
     }
 
     open inner class MicroVoidBuild : HeatBuild(), SpaceDateInterface {
 
         override var spaces: MutableMap<Int, SpaceDate.FieldZone> = HashMap()
 
+        var nowWattage: Float = 0f
 
         var practicalMaxArea: Float = maxArea * 64f
 
         override fun canActiveZone(id: Int): Boolean = efficiency > 0
+
+        fun heatChange(): Float = when {
+            nowWattage == 0f -> defaultHeat//待机时
+            nowWattage <= 1 -> defaultHeat + nowWattage * 18f//工作时
+            nowWattage > 1 -> defaultHeat + nowWattage * 36f//超载时
+            else -> 0f
+        } / specificHeat
 
         override fun updateTile() {
             super.updateTile()
@@ -106,17 +146,17 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
         override fun drawEffectStatus(zone: SpaceDate.FieldZone) {
 //            if (zone !is SpaceDate.CircleZone) return
-//            if (TestShader.meshMap.contains("[Zone]${zone.id}")) return
-//            TestShader.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius)
+//            if (VsVars.shaders.spaceDistortion.meshMap.contains("[Zone]${zone.id}")) return
+//            VsVars.shaders.spaceDistortion.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius)
         }
 
         override fun shouldDrawEffectStatus(): Boolean = true
 
         fun addCircle(x: Float, y: Float, radius: Float, effect: Float, lifeTime: Float): SpaceDate.CircleZone? {
             val zone = addCircle(x, y, radius, effect) ?: return null
-            Time.run(lifeTime * 60) {
-                removeZone(zone.id)
-//                TestShader.remove("[Zone]${zone.id}")
+            VsVars.shaders.spaceDistortion.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius)
+            VsVars.shaders.spaceDistortion.setLifeCycle("[Zone]${zone.id}",lifeTime * 100,0.4f,false) {
+                removeZone(zone)
             }
             return zone
         }

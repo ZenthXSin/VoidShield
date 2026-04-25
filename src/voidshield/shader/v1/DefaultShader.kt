@@ -28,7 +28,7 @@ data class LifeCycleData(
     val mode: Boolean
 )
 
-open class DefaultShader : VSShaderLoader {
+open class DefaultShader(vert: String = "default", frag: String = "default") : VSShaderLoader {
 
     override var shader = ShaderManage.getShader("default", "default", VsVars.modName)
     override var meshMap: HashMap<String, VSShaderLoader.MeshData> = hashMapOf()
