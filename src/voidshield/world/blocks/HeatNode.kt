@@ -12,9 +12,9 @@ import arc.util.Time
 import arc.util.Tmp
 import arc.util.io.Reads
 import arc.util.io.Writes
-import mindustry.core.Renderer
 import mindustry.Vars.tilesize
 import mindustry.Vars.world
+import mindustry.core.Renderer
 import mindustry.entities.units.BuildPlan
 import mindustry.gen.Building
 import mindustry.graphics.Drawf
@@ -31,9 +31,9 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Heat bridge. Remote connection behavior mirrors vanilla ItemBridge.
+ * Heat node, link and configure behavior aligned with vanilla ItemBridge.
  */
-open class HeatCatheter(name: String) : HeatBlock(name) {
+open class HeatNode(name: String) : HeatBlock(name) {
     companion object {
         private var otherReq: BuildPlan? = null
     }
@@ -41,7 +41,9 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
     val timerCheckMoved = timers++
     var range: Int = 5
     var conductivity: Float = 0.5f
-    var lastBuildPos: Int = -1
+
+    // for auto-link, mirrors ItemBridge.lastBuild behavior
+    var lastBuild: HeatNodeBuild? = null
 
     init {
         update = true
@@ -49,12 +51,12 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         consumesPower = true
         configurable = true
 
-        config(Point2::class.java) { build: HeatCatheterBuild, point: Point2 ->
-            build.targetLink = Point2.pack(point.x + build.tileX(), point.y + build.tileY())
+        config(Point2::class.java) { build: HeatNodeBuild, point: Point2 ->
+            build.link = Point2.pack(point.x + build.tileX(), point.y + build.tileY())
         }
 
-        config(Int::class.javaPrimitiveType) { build: HeatCatheterBuild, value: Int ->
-            build.targetLink = value
+        config(Int::class.javaPrimitiveType) { build: HeatNodeBuild, value: Int ->
+            build.link = value
         }
     }
 
@@ -110,10 +112,10 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
     open fun linkValid(tile: Tile?, other: Tile?, checkDouble: Boolean): Boolean {
         if (other == null || tile == null || !positionsValid(tile.x.toInt(), tile.y.toInt(), other.x.toInt(), other.y.toInt())) return false
 
-        val build = other.build as? HeatCatheterBuild ?: return false
-        return ((other.block() == tile.block() && tile.block() == this) || (tile.block() !is HeatCatheter && other.block() == this))
+        val build = other.build as? HeatNodeBuild ?: return false
+        return ((other.block() == tile.block() && tile.block() == this) || (tile.block() !is HeatNode && other.block() == this))
             && (build.team == tile.team() || tile.block() != this)
-            && (!checkDouble || build.targetLink != tile.pos())
+            && (!checkDouble || build.link != tile.pos())
     }
 
     open fun positionsValid(x1: Int, y1: Int, x2: Int, y2: Int): Boolean {
@@ -128,10 +130,9 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
 
     open fun findLink(x: Int, y: Int): Tile? {
         val tile = world.tile(x, y)
-        val last = world.tile(lastBuildPos)
-        val lastBuild = last?.build as? HeatCatheterBuild
-        if (tile != null && last != null && lastBuild != null && last != tile && lastBuild.targetLink == -1 && linkValid(tile, last)) {
-            return last
+        val last = lastBuild
+        if (tile != null && last != null && last.tile != tile && last.link == -1 && linkValid(tile, last.tile)) {
+            return last.tile
         }
 
         if (tile == null) return null
@@ -158,8 +159,8 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
                 Pal.placing,
                 x * tilesize + dir.x * (tilesize / 2f + 2f),
                 y * tilesize + dir.y * (tilesize / 2f + 2f),
-                (x + dir.x * range) * tilesize.toFloat(),
-                (y + dir.y * range) * tilesize.toFloat()
+                x * tilesize + dir.x * range * tilesize.toFloat(),
+                y * tilesize + dir.y * range * tilesize.toFloat()
             )
         }
 
@@ -197,13 +198,66 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         }
     }
 
-    open inner class HeatCatheterBuild : HeatBuild() {
-        var targetLink: Int = -1
+    open inner class HeatNodeBuild : HeatBuild() {
+        var link: Int = -1
         val incoming = IntSeq(false, 4)
         var time = -8f
         var timeSpeed = 0f
         var wasMoved = false
         var moved = false
+
+        override fun pickedUp() {
+            link = -1
+        }
+
+        override fun playerPlaced(config: Any?) {
+            super.playerPlaced(config)
+
+            val found = findLink(tileX(), tileY())
+            if (linkValid(tile, found) && link != found!!.pos() && !proximity.contains(found.build)) {
+                found.build.configure(tile.pos())
+            }
+
+            lastBuild = this
+        }
+
+        override fun onConfigureBuildTapped(other: Building): Boolean {
+            // reverse connection
+            if (other is HeatNodeBuild && other.link == pos()) {
+                configure(other.pos())
+                other.configure(-1)
+                return true
+            }
+
+            if (linkValid(tile, other.tile)) {
+                configure(if (link == other.pos()) -1 else other.pos())
+                return false
+            }
+
+            return true
+        }
+
+        fun checkLink() {
+            if (link == -1) return
+            val target = world.tile(link)
+            if (!linkValid(tile, target, false)) {
+                link = -1
+            }
+        }
+
+        fun checkIncoming() {
+            var idx = 0
+            while (idx < incoming.size) {
+                val pos = incoming.items[idx]
+                val other = world.tile(pos)
+                val otherBuild = other?.build as? HeatNodeBuild
+                if (!linkValid(tile, other, false) || otherBuild?.link != tile.pos()) {
+                    incoming.removeIndex(idx)
+                    idx--
+                }
+                idx++
+            }
+        }
 
         override fun updateTile() {
             if (timer(timerCheckMoved, 30f)) {
@@ -218,6 +272,15 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
             checkLink()
             checkIncoming()
 
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
+            val remote = world.tile(link)?.build as? HeatNodeBuild
+            if (remote == null || !linkValid(tile, remote.tile, false)) {
+                warmup = 0f
+            } else {
+                remote.incoming.addUnique(pos())
+                warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
+
+=======
             val remote = world.tile(targetLink)?.build as? HeatCatheterBuild
             if (remote == null || !linkValid(tile, remote.tile, false)) {
                 warmup = Mathf.approachDelta(warmup, 0f, 1f / 30f)
@@ -226,6 +289,7 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
                 remoteIncoming.addUnique(pos())
 
                 warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
                 if (pos() < remote.pos()) {
                     exchangeHeatBridge(remote)
                 }
@@ -234,10 +298,14 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
             for (i in 0 until proximity.size) {
                 val other = proximity[i] as? HeatBuild ?: continue
                 if (other === this) continue
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
+                if (other is HeatNodeBuild && (link == other.pos() || other.link == pos())) continue
+=======
                 if (other is HeatCatheterBuild) {
                     val linkedByBridge = targetLink == other.pos() || other.targetLink == pos()
                     if (linkedByBridge) continue
                 }
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
                 if (pos() < other.pos()) {
                     exchangeHeatAdjacent(other)
                 }
@@ -246,6 +314,9 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
             temperature = clampTemperature(this, temperature)
         }
 
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
+        fun exchangeHeatBridge(other: HeatNodeBuild) {
+=======
         override fun playerPlaced(config: Any?) {
             super.playerPlaced(config)
 
@@ -299,13 +370,18 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         }
 
         fun exchangeHeatBridge(other: HeatCatheterBuild) {
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
             val delta = other.temperature - temperature
             if (Mathf.zero(delta)) return
 
             val bridgeEfficiency = min(efficiency, other.efficiency)
             if (bridgeEfficiency <= 0f) return
 
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
+            val otherConductivity = (other.block as HeatNode).conductivity
+=======
             val otherConductivity = (other.block as HeatCatheter).conductivity
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
             val transferRate = Mathf.clamp(min(conductivity, otherConductivity) * 0.18f * Time.delta * bridgeEfficiency, 0f, 0.45f)
             transferHeat(other, transferRate)
         }
@@ -345,7 +421,7 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
                     val dir = arc.math.geom.Geometry.d4[j]
                     val other = tile.nearby(dir.x * i, dir.y * i)
                     if (linkValid(tile, other)) {
-                        val linked = other!!.pos() == targetLink
+                        val linked = other!!.pos() == link
                         Drawf.select(
                             other.drawx(),
                             other.drawy(),
@@ -358,7 +434,7 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         }
 
         override fun drawSelect() {
-            val target = world.tile(targetLink)
+            val target = world.tile(link)
             if (linkValid(tile, target, false)) {
                 drawInput(target!!)
             }
@@ -371,15 +447,15 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
 
         override fun draw() {
             super.draw()
-            val target = world.tile(targetLink)
-            if (linkValid(tile, target, false)) {
-                Draw.alpha(maxOf(warmup, 0.25f) * Renderer.bridgeOpacity)
-                drawLink(getTemperatureColor(this), target!!.build as HeatCatheterBuild)
-                Draw.reset()
-            }
+            val target = world.tile(link)
+            if (!linkValid(tile, target, false)) return
+
+            Draw.alpha(maxOf(warmup, 0.25f) * Renderer.bridgeOpacity)
+            drawLink(getTemperatureColor(this), target!!.build as HeatNodeBuild)
+            Draw.reset()
         }
 
-        fun drawLink(color: Color, other: HeatCatheterBuild) {
+        fun drawLink(color: Color, other: HeatNodeBuild) {
             val from = getEdgePosition(tile, other.tile)
             val to = getEdgePosition(other.tile, tile)
             Drawf.line(color, from[0], from[1], to[0], to[1])
@@ -387,7 +463,7 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
 
         fun drawInput(other: Tile) {
             if (!linkValid(tile, other, false)) return
-            val linked = other.pos() == targetLink
+            val linked = other.pos() == link
 
             Tmp.v2.trns(tile.angleTo(other), 2f)
             val tx = tile.drawx()
@@ -428,14 +504,14 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         }
 
         override fun config(): Any? {
-            return Point2.unpack(targetLink).sub(tileX(), tileY())
+            return Point2.unpack(link).sub(tileX(), tileY())
         }
 
         override fun version(): Byte = 3
 
         override fun write(w: Writes) {
             super.write(w)
-            w.i(targetLink)
+            w.i(link)
             w.f(warmup)
             w.b(incoming.size)
             for (i in 0 until incoming.size) {
@@ -446,14 +522,14 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
 
         override fun read(r: Reads, revision: Byte) {
             super.read(r, revision)
-            targetLink = when {
+            link = when {
                 revision >= 3 -> r.i()
                 revision == 1.toByte() -> {
                     val amount = r.b().toInt().coerceAtLeast(0)
                     var first = -1
                     for (i in 0 until amount) {
-                        val link = r.i()
-                        if (i == 0) first = link
+                        val saved = r.i()
+                        if (i == 0) first = saved
                     }
                     first
                 }
