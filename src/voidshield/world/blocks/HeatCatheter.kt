@@ -27,6 +27,8 @@ import mindustry.world.meta.StatUnit
 import voidshield.world.HeatBlock
 import voidshield.world.HeatStat
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Heat bridge. Remote connection behavior mirrors vanilla ItemBridge.
@@ -131,6 +133,18 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         if (tile != null && last != null && lastBuild != null && last != tile && lastBuild.targetLink == -1 && linkValid(tile, last)) {
             return last
         }
+
+        if (tile == null) return null
+
+        for (i in 1..range) {
+            for (j in 0..3) {
+                val dir = arc.math.geom.Geometry.d4[j]
+                val nearby = tile.nearby(dir.x * i, dir.y * i) ?: continue
+                val nearbyBuild = nearby.build as? HeatCatheterBuild ?: continue
+                if (nearbyBuild.targetLink != -1) continue
+                if (linkValid(tile, nearby)) return nearby
+            }
+        }
         return null
     }
 
@@ -205,24 +219,28 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
             checkIncoming()
 
             val remote = world.tile(targetLink)?.build as? HeatCatheterBuild
-            if (remote == null) {
-                warmup = 0f
-                temperature = clampTemperature(this, temperature)
+            if (remote == null || !linkValid(tile, remote.tile, false)) {
+                warmup = Mathf.approachDelta(warmup, 0f, 1f / 30f)
             } else {
-                val inc = remote.incoming
-                if (!inc.contains(pos())) {
-                    inc.add(pos())
-                }
-                if (!incoming.contains(pos())) {
-                    incoming.add(pos())
-                }
+                val remoteIncoming = remote.incoming
+                remoteIncoming.addUnique(pos())
+
                 warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
-                if (pos() < remote.pos()) exchangeHeat(remote)
+                if (pos() < remote.pos()) {
+                    exchangeHeatBridge(remote)
+                }
             }
 
             for (i in 0 until proximity.size) {
                 val other = proximity[i] as? HeatBuild ?: continue
-                if (other !== this && pos() < other.pos()) exchangeHeat(other)
+                if (other === this) continue
+                if (other is HeatCatheterBuild) {
+                    val linkedByBridge = targetLink == other.pos() || other.targetLink == pos()
+                    if (linkedByBridge) continue
+                }
+                if (pos() < other.pos()) {
+                    exchangeHeatAdjacent(other)
+                }
             }
 
             temperature = clampTemperature(this, temperature)
@@ -280,14 +298,38 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
             }
         }
 
-        fun exchangeHeat(other: HeatBuild) {
+        fun exchangeHeatBridge(other: HeatCatheterBuild) {
             val delta = other.temperature - temperature
             if (Mathf.zero(delta)) return
 
-            val rate = Mathf.clamp(conductivity * 0.18f * Time.delta, 0f, 0.45f)
-            val change = delta * rate
-            temperature = clampTemperature(this, temperature + change)
-            other.temperature = clampTemperature(other, other.temperature - change)
+            val bridgeEfficiency = min(efficiency, other.efficiency)
+            if (bridgeEfficiency <= 0f) return
+
+            val otherConductivity = (other.block as HeatCatheter).conductivity
+            val transferRate = Mathf.clamp(min(conductivity, otherConductivity) * 0.18f * Time.delta * bridgeEfficiency, 0f, 0.45f)
+            transferHeat(other, transferRate)
+        }
+
+        fun exchangeHeatAdjacent(other: HeatBuild) {
+            val delta = other.temperature - temperature
+            if (Mathf.zero(delta)) return
+
+            val transferRate = Mathf.clamp(conductivity * 0.08f * Time.delta, 0f, 0.25f)
+            transferHeat(other, transferRate)
+        }
+
+        fun transferHeat(other: HeatBuild, rate: Float) {
+            if (rate <= 0f) return
+
+            val delta = other.temperature - temperature
+            if (Mathf.zero(delta)) return
+
+            val selfSpecificHeat = max((block as HeatBlock).specificHeat, 0.001f)
+            val otherSpecificHeat = max((other.block as HeatBlock).specificHeat, 0.001f)
+
+            val energyTransfer = delta * rate
+            temperature = clampTemperature(this, temperature + energyTransfer / selfSpecificHeat)
+            other.temperature = clampTemperature(other, other.temperature - energyTransfer / otherSpecificHeat)
             moved = true
         }
 
