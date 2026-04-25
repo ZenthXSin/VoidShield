@@ -134,6 +134,18 @@ open class HeatNode(name: String) : HeatBlock(name) {
         if (tile != null && last != null && last.tile != tile && last.link == -1 && linkValid(tile, last.tile)) {
             return last.tile
         }
+
+        if (tile == null) return null
+
+        for (i in 1..range) {
+            for (j in 0..3) {
+                val dir = arc.math.geom.Geometry.d4[j]
+                val nearby = tile.nearby(dir.x * i, dir.y * i) ?: continue
+                val nearbyBuild = nearby.build as? HeatCatheterBuild ?: continue
+                if (nearbyBuild.targetLink != -1) continue
+                if (linkValid(tile, nearby)) return nearby
+            }
+        }
         return null
     }
 
@@ -260,6 +272,7 @@ open class HeatNode(name: String) : HeatBlock(name) {
             checkLink()
             checkIncoming()
 
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
             val remote = world.tile(link)?.build as? HeatNodeBuild
             if (remote == null || !linkValid(tile, remote.tile, false)) {
                 warmup = 0f
@@ -267,6 +280,16 @@ open class HeatNode(name: String) : HeatBlock(name) {
                 remote.incoming.addUnique(pos())
                 warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
 
+=======
+            val remote = world.tile(targetLink)?.build as? HeatCatheterBuild
+            if (remote == null || !linkValid(tile, remote.tile, false)) {
+                warmup = Mathf.approachDelta(warmup, 0f, 1f / 30f)
+            } else {
+                val remoteIncoming = remote.incoming
+                remoteIncoming.addUnique(pos())
+
+                warmup = Mathf.approachDelta(warmup, efficiency, 1f / 30f)
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
                 if (pos() < remote.pos()) {
                     exchangeHeatBridge(remote)
                 }
@@ -275,7 +298,14 @@ open class HeatNode(name: String) : HeatBlock(name) {
             for (i in 0 until proximity.size) {
                 val other = proximity[i] as? HeatBuild ?: continue
                 if (other === this) continue
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
                 if (other is HeatNodeBuild && (link == other.pos() || other.link == pos())) continue
+=======
+                if (other is HeatCatheterBuild) {
+                    val linkedByBridge = targetLink == other.pos() || other.targetLink == pos()
+                    if (linkedByBridge) continue
+                }
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
                 if (pos() < other.pos()) {
                     exchangeHeatAdjacent(other)
                 }
@@ -284,14 +314,74 @@ open class HeatNode(name: String) : HeatBlock(name) {
             temperature = clampTemperature(this, temperature)
         }
 
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
         fun exchangeHeatBridge(other: HeatNodeBuild) {
+=======
+        override fun playerPlaced(config: Any?) {
+            super.playerPlaced(config)
+
+            val link = findLink(tileX(), tileY())
+            if (linkValid(tile, link) && targetLink != link!!.pos() && !proximity.contains(link.build)) {
+                link.build.configure(tile.pos())
+            }
+
+            lastBuildPos = pos()
+        }
+
+        override fun pickedUp() {
+            targetLink = -1
+        }
+
+        override fun onConfigureBuildTapped(other: Building): Boolean {
+            if (other is HeatCatheterBuild && other.targetLink == pos()) {
+                configure(other.pos())
+                other.configure(-1)
+                return false
+            }
+
+            if (linkValid(tile, other.tile)) {
+                configure(if (targetLink == other.pos()) -1 else other.pos())
+                return false
+            }
+
+            return true
+        }
+
+        fun checkLink() {
+            if (targetLink == -1) return
+            val target = world.tile(targetLink)
+            if (!linkValid(tile, target, false)) {
+                targetLink = -1
+            }
+        }
+
+        fun checkIncoming() {
+            var idx = 0
+            while (idx < incoming.size) {
+                val pos = incoming.items[idx]
+                val other = world.tile(pos)
+                val otherBuild = other?.build as? HeatCatheterBuild
+                if (!linkValid(tile, other, false) || otherBuild?.targetLink != tile.pos()) {
+                    incoming.removeIndex(idx)
+                    idx--
+                }
+                idx++
+            }
+        }
+
+        fun exchangeHeatBridge(other: HeatCatheterBuild) {
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
             val delta = other.temperature - temperature
             if (Mathf.zero(delta)) return
 
             val bridgeEfficiency = min(efficiency, other.efficiency)
             if (bridgeEfficiency <= 0f) return
 
+<<<<<<< HEAD:src/voidshield/world/blocks/HeatNode.kt
             val otherConductivity = (other.block as HeatNode).conductivity
+=======
+            val otherConductivity = (other.block as HeatCatheter).conductivity
+>>>>>>> master:src/voidshield/world/blocks/HeatCatheter.kt
             val transferRate = Mathf.clamp(min(conductivity, otherConductivity) * 0.18f * Time.delta * bridgeEfficiency, 0f, 0.45f)
             transferHeat(other, transferRate)
         }
