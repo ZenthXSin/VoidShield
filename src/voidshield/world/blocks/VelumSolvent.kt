@@ -21,7 +21,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 
     var maxArea: Int = 200//最大立场面积
 
-    var defaultHeat: Float = 8f//待机时升温速度
+    var defaultHeat: Float = 5f//待机时升温速度
 
     init {
         update = true
