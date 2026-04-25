@@ -265,7 +265,7 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
             if (other is HeatCatheterBuild && other.targetLink == pos()) {
                 configure(other.pos())
                 other.configure(-1)
-                return true
+                return false
             }
 
             if (linkValid(tile, other.tile)) {
