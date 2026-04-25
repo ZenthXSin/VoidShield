@@ -36,7 +36,9 @@ open class HeatNode(name: String) : HeatBlock(name) {
 
     val timerCheckMoved = timers++
     var range = 5
-    var conductivity = 1f
+    var conductivity = 100f
+
+    @Transient
     var lastBuild: HeatNodeBuild? = null
 
     init {
@@ -377,25 +379,25 @@ open class HeatNode(name: String) : HeatBlock(name) {
 
         override fun version(): Byte = 1
 
-        override fun write(write: Writes) {
-            super.write(write)
-            write.i(link)
-            write.f(warmup)
-            write.b(incoming.size)
-            for (i in 0 until incoming.size) write.i(incoming.items[i])
-            write.bool(wasMoved || moved)
+        override fun write(w: Writes) {
+            super.write(w)
+            w.i(link)
+            w.f(warmup)
+            w.b(incoming.size)
+            for (i in 0 until incoming.size) w.i(incoming.items[i])
+            w.bool(wasMoved || moved)
         }
 
-        override fun read(read: Reads, revision: Byte) {
-            super.read(read, revision)
-            link = read.i()
-            warmup = read.f()
-            val links = read.b().toInt().coerceAtLeast(0)
+        override fun read(r: Reads, revision: Byte) {
+            super.read(r, revision)
+            link = r.i()
+            warmup = r.f()
+            val links = r.b().toInt().coerceAtLeast(0)
             incoming.clear()
-            for (i in 0 until links) incoming.add(read.i())
+            for (i in 0 until links) incoming.add(r.i())
 
             if (revision >= 1) {
-                wasMoved = read.bool()
+                wasMoved = r.bool()
                 moved = wasMoved
             }
         }
