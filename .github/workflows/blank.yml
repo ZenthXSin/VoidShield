@@ -30,14 +30,20 @@ jobs:
       - name: Build mod jar
         run: bash ./gradlew jar
 
+      # 确认实际生成的文件名
+      - name: List build outputs
+        run: ls -la build/libs/
+
       - name: Upload built jar file (Artifact)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}
-          path: build/libs/${{ github.event.repository.name }}.jar
+          path: build/libs/*.jar  # 通配符匹配，避免文件名不对
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "Test Auto Build"
-          files: build/libs/${{ github.event.repository.name }}.jar
+          tag_name: "TestAutoBuild"
+          files: build/libs/*.jar  # 通配符匹配所有 jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
