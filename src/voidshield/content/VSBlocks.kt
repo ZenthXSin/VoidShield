@@ -3,7 +3,7 @@ package voidshield.content
 import mindustry.content.Items
 import mindustry.type.Category
 import mindustry.type.ItemStack
-import voidshield.world.blocks.HeatCatheter
+import voidshield.world.blocks.HeatNode
 import voidshield.world.blocks.HeaterBlock
 import voidshield.other.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.CorVacuum
@@ -18,7 +18,7 @@ object VSBlocks {
 
     var evaporativeCooler: HeaterBlock? = null
 
-    var heatCatheter: HeatCatheter? = null
+    var heatNode: HeatNode? = null
 
     var airCooler: HeaterBlock? = null
 
@@ -29,7 +29,7 @@ object VSBlocks {
     var corVacuum: CorVacuum? = null
 
     fun load() {
-        heatCatheter = HeatCatheter("heat-catheter").apply {
+        heatNode = HeatNode("heat-catheter").apply {
             size = 1
             maxTemperature = 2000f
             specificHeat = 0f
