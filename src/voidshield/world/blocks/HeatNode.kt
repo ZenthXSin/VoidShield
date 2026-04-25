@@ -149,13 +149,13 @@ open class HeatNode(name: String) : HeatBlock(name) {
             val w = if (link.x.toInt() == x) tilesize.toFloat() else abs(link.x.toInt() - x) * tilesize - tilesize
             val h = if (link.y.toInt() == y) tilesize.toFloat() else abs(link.y.toInt() - y) * tilesize - tilesize
 
-            Lines.rect((x + link.x.toInt()) / 2f * tilesize - w / 2f, (y + link.y.toInt()) / 2f * tilesize - h / 2f, w, h)
-            Draw.rect(
-                "bridge-arrow",
-                link.x.toInt() * tilesize + Geometry.d4(rot).x * tilesize,
-                link.y.toInt() * tilesize + Geometry.d4(rot).y * tilesize,
-                link.absoluteRelativeTo(x, y) * 90f
+            Lines.rect((x + link.x.toInt() / 2f * tilesize - w.toFloat() / 2f), (y + link.y.toInt()) / 2f * tilesize - h.toFloat() / 2f, w.toFloat(),
+                h.toFloat()
             )
+            Lines.square(
+                (link.x.toInt() * tilesize + Geometry.d4(rot.toInt()).x * tilesize).toFloat(),
+                (link.y.toInt() * tilesize + Geometry.d4(rot.toInt()).y * tilesize).toFloat(),
+                link.absoluteRelativeTo(x, y) * 90f)
         }
         Draw.reset()
     }
