@@ -133,6 +133,18 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
         if (tile != null && last != null && lastBuild != null && last != tile && lastBuild.targetLink == -1 && linkValid(tile, last)) {
             return last
         }
+
+        if (tile == null) return null
+
+        for (i in 1..range) {
+            for (j in 0..3) {
+                val dir = arc.math.geom.Geometry.d4[j]
+                val nearby = tile.nearby(dir.x * i, dir.y * i) ?: continue
+                val nearbyBuild = nearby.build as? HeatCatheterBuild ?: continue
+                if (nearbyBuild.targetLink != -1) continue
+                if (linkValid(tile, nearby)) return nearby
+            }
+        }
         return null
     }
 
@@ -221,7 +233,11 @@ open class HeatCatheter(name: String) : HeatBlock(name) {
 
             for (i in 0 until proximity.size) {
                 val other = proximity[i] as? HeatBuild ?: continue
-                if (other === this || other is HeatCatheterBuild) continue
+                if (other === this) continue
+                if (other is HeatCatheterBuild) {
+                    val linkedByBridge = targetLink == other.pos() || other.targetLink == pos()
+                    if (linkedByBridge) continue
+                }
                 if (pos() < other.pos()) {
                     exchangeHeatAdjacent(other)
                 }
