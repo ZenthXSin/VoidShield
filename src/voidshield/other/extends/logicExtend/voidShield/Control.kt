@@ -3,13 +3,8 @@ package voidshield.other.extends.logicExtend.voidShield
 import arc.scene.ui.Button
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
-import arc.util.Log
-import mindustry.core.World
-import mindustry.gen.Building
 import mindustry.gen.Groups
 import mindustry.gen.LogicIO
-import mindustry.gen.Syncc
-import mindustry.gen.Tex.button
 import mindustry.logic.LAssembler
 import mindustry.logic.LCategory
 import mindustry.logic.LExecutor
@@ -18,11 +13,10 @@ import mindustry.logic.LVar
 import mindustry.ui.Styles
 import voidshield.other.VsVars
 import voidshield.other.dateTypes.SpaceDate
-import voidshield.other.extends.logicExtend.LEExtend
 import voidshield.other.interfaces.BindBuilding
-import voidshield.world.blocks.CorVacuum
-import voidshield.world.blocks.MicroVoid
-import voidshield.world.blocks.VelumSolvent.VelumSolventBuild
+import voidshield.world.blocks.voidshield.CorVacuum
+import voidshield.world.blocks.voidshield.MicroVoid
+import voidshield.world.blocks.voidshield.VelumSolvent.VelumSolventBuild
 
 class VSControl : LStatement() {
 

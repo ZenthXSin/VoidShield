@@ -1,13 +1,8 @@
-package voidshield.world.blocks
+package voidshield.world.blocks.voidshield
 
 import arc.graphics.Color
-import voidshield.world.HeatBlock
+import voidshield.world.blocks.HeatBlock
 import arc.util.Time
-import arc.graphics.g2d.Draw
-import arc.graphics.g2d.Fill
-import arc.math.Rand
-import arc.math.geom.Vec2
-import arc.util.Log
 import mindustry.Vars
 import mindustry.entities.EntityGroup
 import mindustry.entities.Lightning
@@ -15,17 +10,13 @@ import mindustry.game.Team
 import mindustry.gen.Building
 import mindustry.gen.Bullet
 import mindustry.gen.Groups
-import mindustry.graphics.Drawf
-import mindustry.graphics.Layer
 import mindustry.graphics.Pal
-import mindustry.graphics.Shaders
 import mindustry.ui.Bar
 import mindustry.world.meta.Stat
 import voidshield.other.VsVars
 import voidshield.other.dateTypes.SpaceDate
 import voidshield.other.interfaces.SpaceDateInterface
-import voidshield.world.HeatStat
-import voidshield.world.blocks.VelumSolvent.VelumSolventBuild
+import voidshield.world.blocks.HeatStat
 import kotlin.math.roundToInt
 import kotlin.random.Random
 

@@ -1,10 +1,7 @@
-package voidshield.world.blocks
+package voidshield.world.blocks.voidshield
 
-import mindustry.world.blocks.production.GenericCrafter
-import voidshield.world.HeatBlock
-import mindustry.world.meta.Stat
+import voidshield.world.blocks.HeatBlock
 import mindustry.world.meta.StatCat
-import mindustry.world.meta.StatUnit
 
 class CorVacuum(name: String) : HeatBlock(name) {
 

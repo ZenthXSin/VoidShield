@@ -1,4 +1,4 @@
-package voidshield.world.blocks
+package voidshield.world.blocks.voidshield
 
 import arc.graphics.g2d.Draw
 import arc.util.io.Reads
@@ -6,11 +6,11 @@ import arc.util.io.Writes
 import mindustry.Vars
 import mindustry.graphics.Drawf
 import mindustry.graphics.Pal
-import voidshield.world.HeatBlock
+import voidshield.world.blocks.HeatBlock
 import mindustry.world.meta.Stat
 import voidshield.other.dateTypes.SpaceDate
 import voidshield.other.interfaces.SpaceDateInterface
-import voidshield.world.HeatStat
+import voidshield.world.blocks.HeatStat
 import kotlin.math.*
 import mindustry.ui.Bar
 import mindustry.gen.Building

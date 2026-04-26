@@ -1,14 +1,12 @@
-package voidshield.world.blocks
+package voidshield.world.blocks.heat
 
 import arc.graphics.g2d.Draw
 import mindustry.world.meta.Stat
-import mindustry.world.meta.StatCat
-import voidshield.world.HeatBlock
-import voidshield.world.HeatStat
-import arc.util.Log
 import mindustry.graphics.Drawf
 import mindustry.graphics.Layer
 import voidshield.shader.v2.DefaultShader
+import voidshield.world.blocks.HeatBlock
+import voidshield.world.blocks.HeatStat
 
 /**
  * 热力生产方块 - 基础模板

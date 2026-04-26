@@ -8,7 +8,7 @@ import mindustry.logic.*
 import mindustry.ui.Styles
 import voidshield.other.VsVars
 import voidshield.other.extends.logicExtend.*
-import voidshield.world.blocks.VelumSolvent.VelumSolventBuild
+import voidshield.world.blocks.voidshield.VelumSolvent.VelumSolventBuild
 import mindustry.core.World
 
 class VSSensor : LStatement() {

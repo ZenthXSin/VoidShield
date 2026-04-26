@@ -8,7 +8,7 @@ import mindustry.entities.units.*
 import mindustry.gen.*
 import mindustry.world.*
 import mindustry.world.draw.DrawBlock
-import voidshield.world.HeatBlock
+import voidshield.world.blocks.HeatBlock
 
 class DrawHeat : DrawBlock() {  // 建议改名，因为是热特效绘制
     var suffix: String = "-heat"

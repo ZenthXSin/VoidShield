@@ -1,19 +1,18 @@
-package voidshield.world
+package voidshield.world.blocks
 
-import arc.func.Floatp
 import arc.graphics.Color
 import arc.graphics.g2d.TextureRegion
 import arc.math.Mathf
 import arc.struct.Seq
 import arc.util.Eachable
 import arc.util.Time
+import arc.util.io.Reads
+import arc.util.io.Writes
 import mindustry.entities.units.BuildPlan
-import mindustry.game.Team
 import mindustry.gen.Building
 import mindustry.graphics.Pal
 import mindustry.ui.Bar
 import mindustry.world.Block
-import mindustry.world.Tile
 import mindustry.world.draw.DrawBlock
 import mindustry.world.draw.DrawDefault
 import mindustry.world.meta.Stat
@@ -167,7 +166,7 @@ open class HeatBlock(name: String) : Block(name) {
             dispose()
         }
 
-        override fun write(w: arc.util.io.Writes) {
+        override fun write(w: Writes) {
             super.write(w)
             w.f(temperature)
             w.f(targetTemperature)
@@ -177,7 +176,7 @@ open class HeatBlock(name: String) : Block(name) {
             }
         }
 
-        override fun read(r: arc.util.io.Reads, revision: Byte) {
+        override fun read(r: Reads, revision: Byte) {
             super.read(r, revision)
             temperature = r.f()
             targetTemperature = r.f()

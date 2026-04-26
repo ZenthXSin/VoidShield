@@ -3,12 +3,14 @@ package voidshield.content
 import mindustry.content.Items
 import mindustry.type.Category
 import mindustry.type.ItemStack
-import voidshield.world.blocks.HeaterBlock
+import voidshield.world.blocks.heat.HeaterBlock
 import voidshield.other.extends.categoryExtend.registerCategory
-import voidshield.world.blocks.CorVacuum
-import voidshield.world.blocks.HeatCatheter
-import voidshield.world.blocks.MicroVoid
-import voidshield.world.blocks.VelumSolvent
+import voidshield.world.blocks.voidshield.CorVacuum
+import voidshield.world.blocks.heat.HeatCatheter
+import voidshield.world.blocks.heat.HeatCrossover
+import voidshield.world.blocks.heat.HeatRouter
+import voidshield.world.blocks.voidshield.MicroVoid
+import voidshield.world.blocks.voidshield.VelumSolvent
 
 
 object VSBlocks {
@@ -21,6 +23,10 @@ object VSBlocks {
     var airCooler: HeaterBlock? = null
 
     var heatCatheter: HeatCatheter? = null
+
+    var heatCrossover: HeatCrossover? = null
+
+    var heatRouter: HeatRouter? = null
 
     var velumSolvent: VelumSolvent? = null
 
@@ -62,10 +68,27 @@ object VSBlocks {
 
         heatCatheter = HeatCatheter("heat-catheter").apply {
             size = 1
+            hasPower = false
             maxTemperature = 2000f
             overheatDamage = 1f
             overheatThreshold = 0.9f
             specificHeat = 1f
+            requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+        }
+
+        heatCrossover = HeatCrossover("heat-crossover").apply {
+            size = 1
+            health = 100
+            hasPower = false
+            specificHeat = 1f
+            requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+        }
+
+        heatRouter = HeatRouter("heat-router").apply {
+            size = 1
+            health = 100
+            specificHeat = 1f
+            hasPower = false
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
         }
 

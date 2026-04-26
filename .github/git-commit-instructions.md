@@ -29,5 +29,8 @@ More detailed explanatory text, if necessary. Wrap it to about 72 characters or 
 
 Further paragraphs come after blank lines.
 
+
+After this, use a dividing line to separate the upper and lower parts, above is a brief introduction from before, and below is a detailed change and introduction
+
 - Bullet points are okay, too
 - Use a hanging indent
