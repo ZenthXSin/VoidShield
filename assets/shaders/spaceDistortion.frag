@@ -64,7 +64,7 @@ void main() {
 
     // ===================== 科幻色散 (Chromatic Aberration) ====
     // 空间折叠会导致光线RGB分离，这里让RGB按照不同力度进行偏移采样
-    const float rgbSplit = 0; // 色散偏移像素
+    const float rgbSplit = 0.0; // 色散偏移像素
     vec2 splitOffset = dir * (rgbSplit / u_camsize) * mask; // 沿着辐射方向色散
 
     // 分离采样 R, G, B
