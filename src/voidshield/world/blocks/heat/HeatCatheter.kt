@@ -95,6 +95,7 @@ open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
         }
 
         fun transferHeat(build: HeatBuild?) {
+            //TODO 修复帧率影响
             var neighbor = build ?: return
             if (neighbor === this) return
 

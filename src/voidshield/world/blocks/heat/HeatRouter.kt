@@ -30,6 +30,7 @@ class HeatRouter(name: String) : HeatBlock(name) {
             //TODO bottom和heat的贴图效果
         }
         fun transferHeat(build: HeatBuild?) {
+            //TODO 修复帧率影响
             var neighbor = build ?: return
             if (neighbor === this) return
 

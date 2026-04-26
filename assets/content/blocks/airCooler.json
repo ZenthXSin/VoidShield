@@ -15,15 +15,15 @@
             },
             "DrawDefault",
             "voidshield.other.drawers.DrawHeat",
-            {
-                "type": "voidshield.other.drawers.DrawShader",
-                "shaderName": "test",
-                "data": {
-                    "type": "Circle",
-                    "r": 256.0,
-                    "seg": 64
-                }
-            }
+//            {
+//                "type": "voidshield.other.drawers.DrawShader",
+//                "shaderName": "test",
+//                "data": {
+//                    "type": "Circle",
+//                    "r": 256.0,
+//                    "seg": 64
+//                }
+//            }
         ]
     }
 }
