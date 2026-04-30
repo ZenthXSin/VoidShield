@@ -22,6 +22,7 @@ import voidshield.shader.v1.DefaultShader
 import voidshield.shader.v1.JsonShaderLoader
 import voidshield.shader.v1.TestShader
 import voidshield.world.effects.effect.TeleportEffect.loadJson
+import voidshield.world.shaders.BlackHoleShader
 import voidshield.world.shaders.HeatShader
 
 object VsVars {
@@ -55,6 +56,7 @@ class Skills {
 class Shaders {
     var shaders: MutableMap<String, DefaultShader> = mutableMapOf()
     var heatShader: HeatShader = addShader("HeatShader", HeatShader()) as HeatShader
+    var blackHole: BlackHoleShader = addShader("BlackHole", BlackHoleShader()) as BlackHoleShader
     var spaceDistortion: DefaultShader = addShader("SpaceDistortion", DefaultShader(frag = "spaceDistortion"))
     var defaultShader: DefaultShader = addShader("DefaultShader", DefaultShader())
     fun addShader(name: String, shader: DefaultShader): DefaultShader {

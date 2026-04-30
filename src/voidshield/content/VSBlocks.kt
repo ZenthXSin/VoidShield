@@ -1,8 +1,19 @@
 package voidshield.content
 
+import arc.graphics.Blending
+import arc.graphics.Color
+import arc.math.Interp
+import arc.struct.Seq
 import mindustry.content.Items
 import mindustry.type.Category
 import mindustry.type.ItemStack
+import mindustry.world.draw.DrawBlock
+import mindustry.world.draw.DrawDefault
+import mindustry.world.draw.DrawGlowRegion
+import mindustry.world.draw.DrawMulti
+import mindustry.world.draw.DrawParticles
+import mindustry.world.draw.DrawPulseShape
+import mindustry.world.draw.DrawRegion
 import voidshield.world.blocks.heat.HeaterBlock
 import voidshield.other.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.voidshield.CorVacuum
@@ -100,9 +111,22 @@ object VSBlocks {
         }
 
         microVoid = MicroVoid("microVoid").apply {
-            size = 4
+            size = 5
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
             hasPower = true
+            drawer = DrawMulti(Seq.with(DrawRegion("-bottom"), DrawDefault(), DrawGlowRegion().apply {
+                suffix = "-light"
+            }, DrawParticles().apply {
+                color = Color.valueOf("fff3d6")
+                particles = 15
+                particleRad = size * 9f
+                fadeMargin = 1f
+                particleLife = 180f
+                rotateScl = 7f
+                alpha = 0.7f
+                particleInterp = Interp.PowIn(1.5f)
+                blending = Blending.additive
+            }))
             consumePower(50f)
         }
 

@@ -6,6 +6,7 @@ import arc.graphics.g2d.TextureRegion
 import arc.math.geom.Geometry
 import arc.util.Eachable
 import arc.util.Log
+import arc.util.Time
 import mindustry.Vars
 import mindustry.entities.units.BuildPlan
 import mindustry.gen.Building
@@ -62,7 +63,8 @@ open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
     override fun blends(
         tile: Tile?, rotation: Int, otherx: Int, othery: Int, otherrot: Int, otherblock: Block
     ): Boolean {
-        return lookingAtEither(tile, rotation, otherx, othery, otherrot, otherblock) && otherblock is HeatCatheter
+        return otherblock is HeatCatheter && (lookingAtEither(tile, rotation, otherx, othery, otherrot, otherblock) ||
+                (rotation + 2) % 4 == otherrot)
     }
 
     open inner class HeatCatheterBuild : HeatBuild() {
@@ -71,9 +73,11 @@ open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
         var blendscly = 0
 
         var linkBuild: MutableList<HeatBuild> = mutableListOf()
+        var isUpdate = false
 
         override fun onProximityUpdate() {
             super.onProximityUpdate()
+            updateLink()
 
             val bits = buildBlending(tile, rotation, null, true)
             blendbits = bits[0]
@@ -147,12 +151,9 @@ open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
 
         override fun created() {
             super.created()
-            updateLink()
-        }
-
-        override fun onNearbyBuildAdded(other: Building?) {
-            super.onNearbyBuildAdded(other)
-            updateLink()
+            Time.run(50f) {
+                updateLink()
+            }
         }
 
         fun updateLink() {
@@ -161,6 +162,10 @@ open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
         }
 
         override fun updateTile() {
+            if (!isUpdate) {
+                isUpdate = true
+                updateLink()
+            }
             if (efficiency > 0) {
                 heatExchange()
             }
