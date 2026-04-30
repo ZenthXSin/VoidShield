@@ -1,0 +1,83 @@
+{
+  // ========== 颜色配置 ==========
+
+  // 粒子颜色 - 浅绿色 (RGB: 143, 237, 143) - 用于聚集粒子效果
+  "PARTICLE_COLOR_R": 0.56,
+  "PARTICLE_COLOR_G": 0.93,
+  "PARTICLE_COLOR_B": 0.56,
+
+  // 全屏闪光颜色 - 纯白色 (RGB: 255, 255, 255) - 用于爆发闪光效果
+  "FULLSCREEN_COLOR_R": 1.0,
+  "FULLSCREEN_COLOR_G": 1.0,
+  "FULLSCREEN_COLOR_B": 1.0,
+
+  // 激光束颜色 - 苍蓝色 (RGB: 128, 166, 204) - 用于线段粒子效果
+  "LINE_COLOR_R": 0.5,
+  "LINE_COLOR_G": 0.65,
+  "LINE_COLOR_B": 0.8,
+
+  // ========== 粒子配置（绿色聚集粒子） ==========
+
+  // 同时存在的最大粒子数量
+  "PARTICLE_COUNT": 50,
+
+  // 粒子分布的最大半径范围（像素）
+  "MAX_RADIUS": 80,
+
+  // 粒子生成间隔（帧数，2帧 ≈ 0.033秒 @60fps）
+  "SPAWN_INTERVAL": 2,
+
+  // 单个粒子的最大生命周期（帧数，90帧 = 1.5秒 @60fps）
+  "MAX_PARTICLE_LIFE": 90,
+
+  // 粒子最小尺寸（像素）
+  "MIN_PARTICLE_SIZE": 4,
+
+  // 粒子最大尺寸（像素）
+  "MAX_PARTICLE_SIZE": 16,
+
+  // ========== 光圈配置（收缩的绿色圆环） ==========
+
+  // 圆环最大半径
+  "RING_MAX_RADIUS": 160,
+
+  // 圆环最小线宽
+  "RING_MIN_WIDTH": 5,
+
+  // 圆环最大线宽
+  "RING_MAX_WIDTH": 16,
+
+  // 圆环生成间隔（帧数，10帧 ≈ 0.167秒 @60fps）
+  "RING_SPAWN_INTERVAL": 10,
+
+  // 同时存在的最大圆环数量
+  "MAX_RINGS": 30,
+
+  // ========== 全屏粒子配置（白色闪光） ==========
+
+  // 全屏闪光持续时间（帧数，120帧 = 2秒 @60fps）
+  "FULLSCREEN_DURATION": 15,
+
+  // 闪光前等待时间（帧数，30帧 = 0.5秒 @60fps）
+  "FULLSCREEN_WAIT": 5,
+
+  // 闪光淡出时间（帧数，90帧 = 1.5秒 @60fps）
+  "FULLSCREEN_FADE": 10,
+
+  // 粒子大小
+  "SIZE_SCREEN": 16000,
+
+  // ========== 线段粒子配置（苍蓝色激光束） ==========
+
+  // 激光束宽度
+  "LINE_WIDTH": 144,
+
+  // 激光束长度
+  "LINE_LENGTH": 16000,
+
+  // 激光束持续时间（帧数，90帧 = 1.5秒 @60fps）
+  "LINE_DURATION": 90,
+
+  // 激光束淡出延迟（帧数，60帧 = 1秒 @60fps）
+  "LINE_FADE_DELAY": 60
+}

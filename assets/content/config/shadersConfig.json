@@ -1,0 +1,9 @@
+{
+  "shaders": [
+    {
+      "name": "test",
+      "frag": "test",
+      "vert": "default"
+    }
+  ]
+}
