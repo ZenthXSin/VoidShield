@@ -74,6 +74,13 @@ class MicroVoid(name: String) : HeatBlock(name) {
             else -> 0f
         } / specificHeat * Time.delta / 0.5f
 
+        override fun draw() {
+            super.draw()
+            if (efficiency > 0) {
+                
+            }
+        }
+
         override fun updateTile() {
             super.updateTile()
             drawZones()
