@@ -46,7 +46,7 @@ object VSBlocks {
     var corVacuum: CorVacuum? = null
 
     fun load() {
-        heatSink = HeaterBlock("heatSink").apply {
+        heatSink = HeaterBlock("heat-sink").apply {
             size = 2
             hasPower = false
             maxTemperature = 2000f
@@ -56,7 +56,7 @@ object VSBlocks {
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
         }
 
-        airCooler = HeaterBlock("airCooler").apply {
+        airCooler = HeaterBlock("air-cooler").apply {
             size = 3
             consumePower(300f)
             maxTemperature = 2000f
@@ -103,14 +103,14 @@ object VSBlocks {
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
         }
 
-        velumSolvent = VelumSolvent("velumSolvent").apply {
+        velumSolvent = VelumSolvent("velum-solvent").apply {
             size = 5
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
             hasPower = true
             consumePower(50f)
         }
 
-        microVoid = MicroVoid("microVoid").apply {
+        microVoid = MicroVoid("micro-void").apply {
             size = 5
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
             hasPower = true
@@ -130,7 +130,7 @@ object VSBlocks {
             consumePower(50f)
         }
 
-        corVacuum = CorVacuum("corVacuum").apply {
+        corVacuum = CorVacuum("cor-vacuum").apply {
             size = 8
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
             hasPower = true

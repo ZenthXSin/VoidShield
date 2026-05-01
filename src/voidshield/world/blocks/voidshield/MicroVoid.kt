@@ -37,12 +37,12 @@ class MicroVoid(name: String) : HeatBlock(name) {
         super.setStats()
         stats.add(Stat("最大裂隙数量", VoidShield.voidShield), "$maxFissureCount")
         stats.add(Stat("最大立场面积", VoidShield.voidShield), "${maxArea}²")
-        stats.add(Stat("[blue]待机时", HeatStat.catHeat), "+${defaultHeat * (1f / specificHeat)}°C/tick")
+        stats.add(Stat("待机时", HeatStat.catHeat), "+${defaultHeat * (1f / specificHeat)}°C/tick")
         stats.add(
-            Stat("[green]工作时", HeatStat.catHeat),
+            Stat("工作时", HeatStat.catHeat),
             "+($defaultHeat + 功率 * 18) * (1 / ${specificHeat}) °C/tick"
         )
-        stats.add(Stat("[red]超载时", HeatStat.catHeat), "+($defaultHeat + 功率 * 36) * (1 / ${specificHeat}) °C/tick")
+        stats.add(Stat("超载时", HeatStat.catHeat), "+($defaultHeat + 功率 * 36) * (1 / ${specificHeat}) °C/tick")
     }
 
     override fun setBars() {
@@ -50,7 +50,7 @@ class MicroVoid(name: String) : HeatBlock(name) {
         addBar("wattage") { build: Building ->
             val hb = build as MicroVoidBuild
             Bar(
-                { "升温速度：" + hb.heatChange().roundToInt() + "℃/tick" },
+                { "功率：" + String.format("%.1f", hb.nowWattage * 100) + "%" },
                 { Pal.accent },
                 { hb.nowWattage }
             )

@@ -7,18 +7,10 @@
                 "type": "DrawRegion",
                 "suffix": "-bottom"
             },
-            {
-				"type": "DrawLiquidTile",
-				"drawLiquid": "cryofluid"
-			},
             "DrawDefault",
-            {
-                "type": "DrawRegion",
-                "suffix": "-top"
-            },
             "voidshield.other.drawers.DrawHeat"
         ]
-    }
+    },
     	"consumes": {
 		"power": 8,
 		"liquids": [
