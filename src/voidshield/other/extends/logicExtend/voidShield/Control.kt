@@ -35,7 +35,7 @@ class VSControl : LStatement() {
 
     fun rebuild(table: Table) {
         table.clearChildren()
-
+        table.defaults() // Reset any defaults that might have been set
         table.button({ b: Button? ->
             b!!.label { type.name }
             b.clicked {
@@ -46,37 +46,34 @@ class VSControl : LStatement() {
                     rebuild(table)
                 }, 2, { cell: Cell<*>? -> cell!!.size(100f, 50f) })
             }
-        }, Styles.logict, {}).size(120f, 40f).color(table.color).left().padLeft(2f)
+        }, Styles.logict, {}).size(120f, 40f).color(table.color).padLeft(2f)
 
         when (type) {
             ControlMode.Default -> {
-                table.add(" MicroVoid ").left()
-                field(table, vars[0]) { str -> vars[0] = str }.width(80f).left()
+                table.add(" MicroVoid ")
+                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
                 row(table)
-                table.add(" CorVacuum ").left()
-                field(table, vars[1]) { str -> vars[1] = str }.width(80f).left()
+                table.add(" CorVacuum ")
+                field(table, vars[1]) { str -> vars[1] = str }.width(80f)
                 table.row()
-                table.add(" x ").left()
-                field(table, vars[2]) { str -> vars[2] = str }.width(80f).left()
-                table.add(" y ").left()
-                field(table, vars[3]) { str -> vars[3] = str }.width(80f).left()
-                table.add(" range ").left()
-                field(table, vars[4]) { str -> vars[4] = str }.width(80f).left()
+                table.add(" x ")
+                field(table, vars[2]) { str -> vars[2] = str }.width(80f)
+                table.add(" y ")
+                field(table, vars[3]) { str -> vars[3] = str }.width(80f)
+                table.add(" range ")
+                field(table, vars[4]) { str -> vars[4] = str }.width(80f)
             }
             ControlMode.Clear -> {
-                table.add(" VelumSolvent ").left()
-                field(table, vars[0]) { str -> vars[0] = str }.width(80f).left()
+                table.add(" VelumSolvent ")
+                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
             }
             ControlMode.Bind -> {
                 row(table)
-                field(table, vars[0]) { str -> vars[0] = str }.width(80f).left()
-                table.add(" to ").left()
-                field(table, vars[1]) { str -> vars[1] = str }.width(80f).left()
+                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                table.add(" to ")
+                field(table, vars[1]) { str -> vars[1] = str }.width(80f)
             }
         }
-        table.left()
-
-
     }
 
     override fun build(builder: LAssembler): LExecutor.LInstruction {

@@ -5,6 +5,7 @@ import arc.graphics.Color
 import arc.math.Interp
 import arc.struct.Seq
 import mindustry.content.Items
+import mindustry.content.Liquids
 import mindustry.type.Category
 import mindustry.type.ItemStack
 import mindustry.world.draw.DrawBlock
@@ -17,6 +18,7 @@ import mindustry.world.draw.DrawRegion
 import voidshield.world.blocks.heat.HeaterBlock
 import voidshield.other.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.voidshield.CorVacuum
+import voidshield.other.drawers.DrawHeat
 import voidshield.world.blocks.heat.HeatCatheter
 import voidshield.world.blocks.heat.HeatCrossover
 import voidshield.world.blocks.heat.HeatRouter
@@ -54,6 +56,12 @@ object VSBlocks {
             overheatDamage = 1f
             overheatThreshold = 0.9f
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+            drawer = DrawMulti(Seq.with(
+                DrawRegion("-bottom"),
+                DrawDefault(),
+                DrawRegion("-top"),
+                DrawHeat()
+            ))
         }
 
         airCooler = HeaterBlock("air-cooler").apply {
@@ -64,17 +72,30 @@ object VSBlocks {
             overheatDamage = 1f
             overheatThreshold = 0.9f
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+            drawer = DrawMulti(Seq.with(
+                DrawRegion("-bottom"),
+                DrawRegion("-rotate").apply { spinSprite = true; rotateSpeed = 10f },
+                DrawDefault(),
+                DrawHeat()
+            ))
         }
 
         evaporativeCooler = HeaterBlock("evaporative-cooler").apply {
             size = 4
-            //consumePower(300f)
             maxTemperature = 2000f
             heatingRate = -5f
             overheatDamage = 1f
-            //specificHeat = 5f
             overheatThreshold = 0.9f
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+            drawer = DrawMulti(Seq.with(
+                DrawRegion("-bottom"),
+                DrawRegion("-rotate").apply { spinSprite = true; rotateSpeed = 10f },
+                DrawDefault(),
+                DrawHeat()
+            ))
+            consumePower(8f)
+            consumeLiquid(Liquids.water, 2f)
+            consumeLiquid(Liquids.cryofluid, 0.8f)
         }
 
         heatCatheter = HeatCatheter("heat-catheter").apply {
@@ -108,6 +129,12 @@ object VSBlocks {
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
             hasPower = true
             consumePower(50f)
+            drawer = DrawMulti(Seq.with(
+                DrawRegion("-bottom"),
+                DrawDefault(),
+                DrawRegion("-top"),
+                DrawHeat()
+            ))
         }
 
         microVoid = MicroVoid("micro-void").apply {

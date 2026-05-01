@@ -28,6 +28,7 @@ class VSSensor : LStatement() {
 
     fun rebuild(table: Table) {
         table.clearChildren()
+        table.defaults() // Reset any defaults
 
         table.button({ b: Button? ->
             b!!.label { type.name }
@@ -37,7 +38,7 @@ class VSSensor : LStatement() {
                     rebuild(table)
                 }, 2, { cell: Cell<*>? -> cell!!.size(100f, 50f) })
             }
-        }, Styles.logict, {}).size(120f, 40f).color(table.color).left().padLeft(2f)
+        }, Styles.logict, {}).size(120f, 40f).color(table.color).padLeft(2f)
 
         when (type) {
             SensorMode.Effect -> {
@@ -64,9 +65,6 @@ class VSSensor : LStatement() {
                 field(table, vars[3]) { str -> vars[3] = str }.width(80f)
             }
         }
-        table.left()
-
-
     }
 
     override fun build(builder: LAssembler): LExecutor.LInstruction {
