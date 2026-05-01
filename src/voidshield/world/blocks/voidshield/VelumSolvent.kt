@@ -1,6 +1,7 @@
 package voidshield.world.blocks.voidshield
 
 import arc.graphics.g2d.Draw
+import arc.util.Time
 import arc.util.io.Reads
 import arc.util.io.Writes
 import mindustry.Vars
@@ -47,7 +48,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
         addBar("wattage") { build: Building ->
             val hb = build as VelumSolventBuild
             Bar(
-                { "升温速度：" + hb.heatChange().roundToInt() + "℃/tick" },
+                { "功率：" + String.format("%.1f", hb.nowWattage * 100) + "%" },
                 { Pal.accent },
                 { hb.nowWattage }
             )
@@ -113,16 +114,6 @@ class VelumSolvent(name: String) : HeatBlock(name) {
             }
 
             if (efficiency > 0) {
-//                if (getAllAreas() < 1) {
-//                    Vars.player.unit() ?: return
-//                    addCircle(Vars.player.unit().x, Vars.player.unit().y, 40f, 1f)
-//                } else {
-//                    Vars.player.unit() ?: return
-//                    update {
-//                        if (it !is SpaceDate.CircleZone) return@update
-//                        VsVars.world.spaceDate.updateCirclePosition(it, Vars.player.unit().x, Vars.player.unit().y)
-//                    }
-//                }
                 //升温逻辑
                 temperature += heatChange()
                 super.updateTile()
@@ -134,7 +125,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
             nowWattage <= 1 -> defaultHeat + nowWattage * 18f//工作时
             nowWattage > 1 -> defaultHeat + nowWattage * 36f//超载时
             else -> 0f
-        } / specificHeat
+        } / specificHeat * Time.delta / 0.5f
 
         override fun draw() {
             super.draw()

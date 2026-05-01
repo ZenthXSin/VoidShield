@@ -16,7 +16,7 @@ A Mindustry mod built with Kotlin.
 
 ## Development
 
-This project uses Kotlin 2.0.20 and targets Mindustry v150.1.
+This project uses Kotlin 2.0.20 and targets mindustry v157.4.
 
 ## License
 

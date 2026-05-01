@@ -21,8 +21,6 @@ import kotlin.math.min
 open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
     lateinit var regions: Array<TextureRegion>
 
-    var rate = 0.9f
-
     init {
         rotate = true
         update = true
@@ -96,50 +94,6 @@ open class HeatCatheter(name: String) : HeatBlock(name), Autotiler {
                 region.height * blendscly * region.scl(),
                 rotation * 90f
             )
-        }
-
-        fun transferHeat(build: HeatBuild?) {
-            //TODO 修复帧率影响
-            var neighbor = build ?: return
-            if (neighbor === this) return
-
-            if (neighbor.block is HeatCrossover) {
-                val dx = neighbor.tileX() - tileX()
-                val dy = neighbor.tileY() - tileY()
-
-                neighbor = when {
-                    dx == 1 && dy == 0 -> Vars.world.tile(neighbor.tileX() + 1, neighbor.tileY()).build as? HeatBuild
-                    dx == -1 && dy == 0 -> Vars.world.tile(neighbor.tileX() - 1, neighbor.tileY()).build as? HeatBuild
-                    dx == 0 && dy == 1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() + 1).build as? HeatBuild
-                    dx == 0 && dy == -1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() - 1).build as? HeatBuild
-                    else -> null
-                } ?: return
-            }
-
-            if (neighbor.block is HeatCrossover) return
-
-            val selfBlock = block as HeatBlock
-            val otherBlock = neighbor.block as? HeatBlock ?: return
-
-            val diff = temperature - neighbor.temperature
-            val selfHeat = selfBlock.specificHeat
-            val otherHeat = otherBlock.specificHeat
-            val balance = (temperature * selfHeat + neighbor.temperature * otherHeat) / (selfHeat + otherHeat)
-
-            if (diff > 0f) {
-                val maxTransfer = (temperature - balance) * selfHeat
-                val transfer = min(abs(diff) * rate, maxTransfer)
-                temperature -= transfer / selfHeat
-                neighbor.temperature += transfer / otherHeat
-            } else {
-                val maxTransfer = (neighbor.temperature - balance) * otherHeat
-                val transfer = min(abs(diff) * rate, maxTransfer)
-                temperature += transfer / selfHeat
-                neighbor.temperature -= transfer / otherHeat
-            }
-
-            temperature = temperature.coerceIn(20f, maxTemperature)
-            neighbor.temperature = neighbor.temperature.coerceIn(20f, otherBlock.maxTemperature)
         }
 
         open fun heatExchange() {

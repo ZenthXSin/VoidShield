@@ -8,6 +8,7 @@ import arc.util.Eachable
 import arc.util.Time
 import arc.util.io.Reads
 import arc.util.io.Writes
+import mindustry.Vars
 import mindustry.entities.units.BuildPlan
 import mindustry.gen.Building
 import mindustry.graphics.Pal
@@ -21,6 +22,7 @@ import mindustry.world.meta.StatUnit
 import voidshield.other.VsVars
 import voidshield.other.interfaces.BindBuilding
 import voidshield.other.interfaces.BlockShader
+import voidshield.world.blocks.heat.HeatCrossover
 import kotlin.math.*
 
 /**
@@ -43,6 +45,10 @@ open class HeatBlock(name: String) : Block(name) {
 
     /** 绘制器 - 用于自定义方块外观 */
     var drawer: DrawBlock = DrawDefault()
+
+    /** 热能转换效率（每秒 * 120） */
+    var rate = 0.9f
+    var cooldown = true
 
     var warmupSpeed = 0.019f
 
@@ -129,6 +135,58 @@ open class HeatBlock(name: String) : Block(name) {
 
         fun warmupTarget(): Float = 1f
 
+        /** 与建筑进行热交换*/
+        fun transferHeat(build: HeatBuild?) {
+            var neighbor = build ?: return
+            if (neighbor === this) return
+
+            if (neighbor.block is HeatCrossover) {
+                val dx = neighbor.tileX() - tileX()
+                val dy = neighbor.tileY() - tileY()
+
+                neighbor = when {
+                    dx == 1 && dy == 0 -> Vars.world.tile(neighbor.tileX() + 1, neighbor.tileY()).build as? HeatBuild
+                    dx == -1 && dy == 0 -> Vars.world.tile(neighbor.tileX() - 1, neighbor.tileY()).build as? HeatBuild
+                    dx == 0 && dy == 1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() + 1).build as? HeatBuild
+                    dx == 0 && dy == -1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() - 1).build as? HeatBuild
+                    else -> null
+                } ?: return
+            }
+
+            if (neighbor.block is HeatCrossover) return
+
+            val selfBlock = block as HeatBlock
+            val otherBlock = neighbor.block as? HeatBlock ?: return
+
+            val diff = temperature - neighbor.temperature
+            if (abs(diff) < 0.01f) return // 温差太小直接跳过
+
+            val selfHeat = selfBlock.specificHeat
+            val otherHeat = otherBlock.specificHeat
+            val totalHeat = selfHeat + otherHeat
+            val balance = (temperature * selfHeat + neighbor.temperature * otherHeat) / totalHeat
+
+            // delta 归一化到 120fps
+            val deltaFactor = Time.delta / 0.5f
+
+            val maxTransferRatio = rate * deltaFactor
+
+            if (diff > 0f) {
+                val maxTransfer = (temperature - balance) * selfHeat
+                val transfer = min(abs(diff) * maxTransferRatio, maxTransfer)
+                temperature -= transfer / selfHeat
+                neighbor.temperature += transfer / otherHeat
+            } else {
+                val maxTransfer = (neighbor.temperature - balance) * otherHeat
+                val transfer = min(abs(diff) * maxTransferRatio, maxTransfer)
+                temperature += transfer / selfHeat
+                neighbor.temperature -= transfer / otherHeat
+            }
+
+            temperature = temperature.coerceIn(20f, maxTemperature)
+            neighbor.temperature = neighbor.temperature.coerceIn(20f, otherBlock.maxTemperature)
+        }
+
         override fun updateTile() {
             super.updateTile()
 
@@ -143,7 +201,7 @@ open class HeatBlock(name: String) : Block(name) {
             totalProgress += warmup * Time.delta
 
             // 基础降温逻辑：当温度高于环境温度 (20°C) 时，以 0.5℃/tick 的速率降温
-            if (temperature > 20f) {
+            if (temperature > 20f && cooldown) {
                 temperature -= 0.1f / specificHeat
                 if (temperature < 20f) temperature = 20f
             }

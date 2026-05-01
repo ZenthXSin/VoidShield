@@ -72,7 +72,7 @@ class MicroVoid(name: String) : HeatBlock(name) {
             nowWattage <= 1 -> defaultHeat + nowWattage * 18f//工作时
             nowWattage > 1 -> defaultHeat + nowWattage * 36f//超载时
             else -> 0f
-        } / specificHeat
+        } / specificHeat * Time.delta / 0.5f
 
         override fun updateTile() {
             super.updateTile()

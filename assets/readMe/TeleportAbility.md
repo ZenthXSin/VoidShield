@@ -13,17 +13,17 @@
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `type` | String | 是 | 固定值：`voidshield.entities.abilities.TeleportAbility` |
-| `date` | Object | 是 | 跃迁配置数据对象，见下方 TeleportDate |
+| `data` | Object | 是 | 跃迁配置数据对象，见下方 TeleportData |
 
 ---
 
-## TeleportDate 配置
+## TeleportData 配置
 
-- **类型**: `voidshield.entities.abilities.TeleportDate`
+- **类型**: `voidshield.entities.abilities.TeleportData`
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `type` | String | - | `voidshield.entities.abilities.TeleportDate` |
+| `type` | String | - | `voidshield.entities.abilities.TeleportData` |
 | `range` | Float | 200 | 跃迁最大距离（像素/格数，视代码实现而定） |
 | `cooldown` | Float | 60 | 冷却时间（帧，60帧=1秒） |
 | `readyTime` | Float | 290 | 跃迁准备/蓄力时间（帧），之后执行传送 |
@@ -39,12 +39,12 @@
 
 ## 子配置类型
 
-### TeleportEffectDate - 特效节点
-- **类型**: `voidshield.entities.abilities.TeleportEffectDate`
+### TeleportEffectData - 特效节点
+- **类型**: `voidshield.entities.abilities.TeleportEffectData`
 
 ```json
 {
-    "type": "voidshield.entities.abilities.TeleportEffectDate",
+    "type": "voidshield.entities.abilities.TeleportEffectData",
     "effect": "effectId",
     "startTime": 0
 }
@@ -57,12 +57,12 @@
 
 ---
 
-### TeleportSoundDate - 音效节点
-- **类型**: `voidshield.entities.abilities.TeleportSoundDate`
+### TeleportSoundData - 音效节点
+- **类型**: `voidshield.entities.abilities.TeleportSoundData`
 
 ```json
 {
-    "type": "voidshield.entities.abilities.TeleportSoundDate",
+    "type": "voidshield.entities.abilities.TeleportSoundData",
     "sound": "soundId",
     "volume": 1.0,
     "startTime": 0
@@ -77,12 +77,12 @@
 
 ---
 
-### **TeleportBulletDate - 子弹节点（重点）**
-- **类型**: `voidshield.entities.abilities.TeleportBulletDate`
+### **TeleportBulletData - 子弹节点（重点）**
+- **类型**: `voidshield.entities.abilities.TeleportBulletData`
 
 ```json
 {
-    "type": "voidshield.entities.abilities.TeleportBulletDate",
+    "type": "voidshield.entities.abilities.TeleportBulletData",
     "bullet": "bulletTypeId",
     "startTime": 0
 }
@@ -109,8 +109,8 @@
     "abilities": [
         {
             "type": "voidshield.entities.abilities.TeleportAbility",
-            "date": {
-                "type": "voidshield.entities.abilities.TeleportDate",
+            "data": {
+                "type": "voidshield.entities.abilities.TeleportData",
                 "range": 160,
                 "cooldown": 1800,
                 "readyTime": 290,
@@ -130,8 +130,8 @@
     "abilities": [
         {
             "type": "voidshield.entities.abilities.TeleportAbility",
-            "date": {
-                "type": "voidshield.entities.abilities.TeleportDate",
+            "data": {
+                "type": "voidshield.entities.abilities.TeleportData",
                 "range": 200,
                 "cooldown": 1200,
                 "readyTime": 300,
@@ -141,25 +141,25 @@
                 "statusTime": 300,
                 "effects": [
                     {
-                        "type": "voidshield.entities.abilities.TeleportEffectDate",
+                        "type": "voidshield.entities.abilities.TeleportEffectData",
                         "effect": "teleportCharge",
                         "startTime": 0
                     },
                     {
-                        "type": "voidshield.entities.abilities.TeleportEffectDate",
+                        "type": "voidshield.entities.abilities.TeleportEffectData",
                         "effect": "teleportFlash",
                         "startTime": 300
                     }
                 ],
                 "sounds": [
                     {
-                        "type": "voidshield.entities.abilities.TeleportSoundDate",
+                        "type": "voidshield.entities.abilities.TeleportSoundData",
                         "sound": "laserCharge",
                         "volume": 0.8,
                         "startTime": 0
                     },
                     {
-                        "type": "voidshield.entities.abilities.TeleportSoundDate",
+                        "type": "voidshield.entities.abilities.TeleportSoundData",
                         "sound": "warp",
                         "volume": 1.0,
                         "startTime": 300
@@ -167,17 +167,17 @@
                 ],
                 "bullets": [
                     {
-                        "type": "voidshield.entities.abilities.TeleportBulletDate",
+                        "type": "voidshield.entities.abilities.TeleportBulletData",
                         "bullet": "standardThorium",
                         "startTime": 50
                     },
                     {
-                        "type": "voidshield.entities.abilities.TeleportBulletDate",
+                        "type": "voidshield.entities.abilities.TeleportBulletData",
                         "bullet": "missileSurge",
                         "startTime": 300
                     },
                     {
-                        "type": "voidshield.entities.abilities.TeleportBulletDate",
+                        "type": "voidshield.entities.abilities.TeleportBulletData",
                         "bullet": "blastExplosive",
                         "startTime": 350
                     }
@@ -194,8 +194,8 @@
     "abilities": [
         {
             "type": "voidshield.entities.abilities.TeleportAbility",
-            "date": {
-                "type": "voidshield.entities.abilities.TeleportDate",
+            "data": {
+                "type": "voidshield.entities.abilities.TeleportData",
                 "range": 120,
                 "cooldown": 600,
                 "readyTime": 60,
@@ -203,7 +203,7 @@
                 "useDefaultEffect": true,
                 "bullets": [
                     {
-                        "type": "voidshield.entities.abilities.TeleportBulletDate",
+                        "type": "voidshield.entities.abilities.TeleportBulletData",
                         "bullet": "fireball",
                         "startTime": 60
                     }
