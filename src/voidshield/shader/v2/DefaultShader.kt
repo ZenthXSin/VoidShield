@@ -2,13 +2,24 @@ package voidshield.shader.v2
 
 import arc.Core
 import arc.graphics.gl.Shader
+import arc.scene.ui.layout.Scl
 import arc.util.Time
-import voidshield.shader.ShaderManage.getShaderFi
+import mindustry.graphics.Shaders.LoadShader
+import voidshield.shader.ShaderManage
 
-object DefaultShader: Shader(getShaderFi("screenspace.vert"), getShaderFi("v2Test.frag")) {
+open class TestV2 : Shader(
+    ShaderManage.getShaderFi("screenspace.vert")
+    , ShaderManage.getShaderFi("v2Test.frag")
+) {
     override fun apply() {
-        setUniformf("u_time", Time.time)
-        setUniformf("u_resolution", Core.graphics.width.toFloat(), Core.graphics.height.toFloat())
-        setUniformf("u_campos", Core.camera.position.x, Core.camera.position.y)
+        this.setUniformf("u_dp", Scl.scl(1.0f))
+        this.setUniformf("u_time", Time.time / Scl.scl(1.0f))
+        this.setUniformf(
+            "u_offset",
+            Core.camera.position.x - Core.camera.width / 2.0f,
+            Core.camera.position.y - Core.camera.height / 2.0f
+        )
+        this.setUniformf("u_texsize", Core.camera.width, Core.camera.height)
+        this.setUniformf("u_invsize", 1.0f / Core.camera.width, 1.0f / Core.camera.height)
     }
 }

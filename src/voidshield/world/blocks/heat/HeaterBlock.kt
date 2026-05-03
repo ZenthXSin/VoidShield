@@ -4,7 +4,6 @@ import arc.graphics.g2d.Draw
 import mindustry.world.meta.Stat
 import mindustry.graphics.Drawf
 import mindustry.graphics.Layer
-import voidshield.shader.v2.DefaultShader
 import voidshield.world.blocks.HeatBlock
 import voidshield.world.blocks.HeatStat
 
@@ -29,13 +28,6 @@ class HeaterBlock(name: String) : HeatBlock(name) {
     open inner class HeaterBuild : HeatBuild() {
         override fun draw() {
             super.draw()
-            Draw.draw(Layer.effect) {
-                Draw.flush()
-                Draw.shader(DefaultShader)
-                Drawf.circles(x,y,400f)
-                Draw.flush()
-                Draw.shader()
-            }
         }
         override fun updateTile() {
             super.updateTile()

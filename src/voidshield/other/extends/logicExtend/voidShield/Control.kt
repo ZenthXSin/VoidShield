@@ -6,6 +6,7 @@ import arc.scene.ui.layout.Table
 import mindustry.gen.Groups
 import mindustry.gen.LogicIO
 import mindustry.logic.LAssembler
+import mindustry.logic.LCanvas
 import mindustry.logic.LCategory
 import mindustry.logic.LExecutor
 import mindustry.logic.LStatement
@@ -30,50 +31,120 @@ class VSControl : LStatement() {
     }
 
     override fun build(table: Table) {
+        table.table { i ->
+            i.left()
+            i.color.set(table.color)
+
+            i.clearChildren()
+            i.defaults() // Reset any defaults that might have been set
+            row(i, true) { i1 ->
+                i1.button({ b: Button? ->
+                    b!!.label { type.name }
+                    b.clicked {
+                        showSelect(b, ControlMode.all, type, { t: ControlMode ->
+                            type = t
+                            vars = mutableListOf()
+                            type.params.forEach { vars += it }
+                            rebuild(i1)
+                        }, 2, { cell: Cell<*>? -> cell!!.size(100f, 50f) })
+                    }
+                }, Styles.logict, {}).size(120f, 40f).color(i1.color).padLeft(2f)
+            }
+        }.left()
+        table.row()
         rebuild(table)
     }
 
-    fun rebuild(table: Table) {
-        table.clearChildren()
-        table.defaults() // Reset any defaults that might have been set
-        table.button({ b: Button? ->
-            b!!.label { type.name }
-            b.clicked {
-                showSelect(b, ControlMode.all, type, { t: ControlMode ->
-                    type = t
-                    vars = mutableListOf()
-                    type.params.forEach { vars += it }
-                    rebuild(table)
-                }, 2, { cell: Cell<*>? -> cell!!.size(100f, 50f) })
-            }
-        }, Styles.logict, {}).size(120f, 40f).color(table.color).padLeft(2f)
-
-        when (type) {
-            ControlMode.Default -> {
-                table.add(" MicroVoid ")
-                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
-                row(table)
-                table.add(" CorVacuum ")
-                field(table, vars[1]) { str -> vars[1] = str }.width(80f)
-                table.row()
-                table.add(" x ")
-                field(table, vars[2]) { str -> vars[2] = str }.width(80f)
-                table.add(" y ")
-                field(table, vars[3]) { str -> vars[3] = str }.width(80f)
-                table.add(" range ")
-                field(table, vars[4]) { str -> vars[4] = str }.width(80f)
-            }
-            ControlMode.Clear -> {
-                table.add(" VelumSolvent ")
-                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
-            }
-            ControlMode.Bind -> {
-                row(table)
-                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
-                table.add(" to ")
-                field(table, vars[1]) { str -> vars[1] = str }.width(80f)
-            }
+    fun row(table: Table?, row: Boolean = false, run: (table: Table) -> Unit) {
+        table ?: return
+        if (LCanvas.useRows() || row) {
+            table.row()
+            table.table { i ->
+                i.color.set(table.color)
+                run(i.left())
+            }.left()
+        } else {
+            run(table)
         }
+    }
+
+    fun rebuild(table: Table) {
+//        when (type) {
+//            ControlMode.Default -> {
+//                table.table { i ->
+//                    i.left()
+//                    i.add(" MicroVoid ")
+//                    field(i, vars[0]) { str -> vars[0] = str }.width(80f)
+//                    i.add(" CorVacuum ")
+//                    field(i, vars[1]) { str -> vars[1] = str }.width(80f)
+//                }.growX().left().row()
+//                row(table)
+//                table.table { i ->
+//                    i.left()
+//                    i.add(" x ")
+//                    field(i, vars[2]) { str -> vars[2] = str }.width(80f)
+//                    i.add(" y ")
+//                    field(i, vars[3]) { str -> vars[3] = str }.width(80f)
+//                    i.add(" range ")
+//                    field(i, vars[4]) { str -> vars[4] = str }.width(80f)
+//                }.growX().left()
+//            }
+//            ControlMode.Clear -> {
+//                table.table { i ->
+//                    i.left()
+//                    i.add(" VelumSolvent ")
+//                    field(i, vars[0]) { str -> vars[0] = str }.width(80f)
+//                }.growX().left().row()
+//
+//            }
+//            ControlMode.Bind -> {
+//                row(table)
+//                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+//                table.add(" to ")
+//                field(table, vars[1]) { str -> vars[1] = str }.width(80f)
+//            }
+//        }
+        table.table { i ->
+            i.left()
+            i.color.set(table.color)
+
+            when (type) {
+                ControlMode.Default -> {
+                    row(i, true) { i ->
+                        i.left()
+                        i.add(" MicroVoid ")
+                        field(i, vars[0]) { str -> vars[0] = str }.width(80f)
+                        i.add(" CorVacuum ")
+                        field(i, vars[1]) { str -> vars[1] = str }.width(80f)
+                    }
+
+                    row(i, true) { table ->
+                        table.add(" x ")
+                        field(table, vars[2]) { str -> vars[2] = str }.width(80f)
+                        table.add(" y ")
+                        field(table, vars[3]) { str -> vars[3] = str }.width(80f)
+                        table.add(" range ")
+                        field(table, vars[4]) { str -> vars[4] = str }.width(80f)
+                    }
+
+                }
+
+                ControlMode.Clear -> {
+                    i.left()
+                    i.add(" VelumSolvent ")
+                    field(i, vars[0]) { str -> vars[0] = str }.width(80f)
+
+                }
+
+                ControlMode.Bind -> {
+                    row(i)
+                    field(i, vars[0]) { str -> vars[0] = str }.width(80f)
+                    i.add(" to ")
+                    field(i, vars[1]) { str -> vars[1] = str }.width(80f)
+                }
+            }
+            i.left()
+        }.growX().left().row()
     }
 
     override fun build(builder: LAssembler): LExecutor.LInstruction {
