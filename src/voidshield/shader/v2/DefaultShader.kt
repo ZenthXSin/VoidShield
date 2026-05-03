@@ -13,7 +13,7 @@ open class TestV2 : Shader(
 ) {
     override fun apply() {
         this.setUniformf("u_dp", Scl.scl(1.0f))
-        this.setUniformf("u_time", Time.time / Scl.scl(1.0f))
+        this.setUniformf("u_time", Time.time / Scl.scl(1.0f) / 5f)
         this.setUniformf(
             "u_offset",
             Core.camera.position.x - Core.camera.width / 2.0f,
