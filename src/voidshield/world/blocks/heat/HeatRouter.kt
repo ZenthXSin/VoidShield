@@ -1,7 +1,14 @@
 package voidshield.world.blocks.heat
 
 import arc.Core
+import arc.assets.loaders.TextureLoader.TextureParameter
+import arc.func.Cons
+import arc.graphics.Texture
+import arc.graphics.Texture.TextureFilter
+import arc.graphics.Texture.TextureWrap
 import arc.graphics.g2d.Draw
+import arc.graphics.g2d.TextureAtlas
+import arc.graphics.g2d.TextureRegion
 import arc.math.geom.Geometry
 import arc.math.geom.Point2
 import arc.util.Time
@@ -20,6 +27,23 @@ class HeatRouter(name: String) : HeatBlock(name) {
         rotate = false
     }
 
+    var texture: TextureRegion = Core.atlas.white()
+
+    override fun load() {
+        super.load()
+        Core.assets.load("sprites/space.png", Texture::class.java, object : TextureParameter() {
+            init {
+                this.magFilter = TextureFilter.linear
+                this.minFilter = TextureFilter.mipMapLinearLinear
+                this.wrapV = TextureWrap.mirroredRepeat
+                this.wrapU = this.wrapV
+                this.genMipMaps = true
+            }
+        }).loaded = Cons { t: Texture ->
+            texture = TextureRegion(t)
+        }
+    }
+
     open inner class HeatRouterBuild : HeatBuild() {
         var linkBuild: MutableList<HeatBuild> = mutableListOf()
         override fun updateTile() {
@@ -32,7 +56,7 @@ class HeatRouter(name: String) : HeatBlock(name) {
         override fun draw() {
             //super.draw()
             Draw.z(Layer.shields + 5f)
-            Draw.rect(Core.atlas.white(),x,y, 80f, 80f)
+            Draw.rect(texture ?: Core.atlas.white(),x,y, 80f, 80f)
             //TODO bottom和heat的贴图效果
         }
 

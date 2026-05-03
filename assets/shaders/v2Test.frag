@@ -4,11 +4,13 @@
 #define STEP_SIZE 2.0
 
 uniform sampler2D u_texture;
+uniform sampler2D u_background;
 uniform vec2 u_texsize;
 uniform vec2 u_invsize;
 uniform float u_time;
 uniform float u_dp;
 uniform vec2 u_offset;
+uniform float u_quality;
 
 varying vec2 v_texCoords;
 
@@ -198,13 +200,9 @@ vec3 postProcess(vec3 col, vec2 q) {
 
 void main(){
   vec2 T = v_texCoords.xy;
-  vec2 coords = (T * u_texsize) + u_offset;
   vec2 v = u_invsize;
 
-  // UV扰动（受相机影响，保留原特效行为）
-  T += vec2(sin(coords.y / 3.0 + u_time / 20.0), sin(coords.x / 3.0 + u_time / 20.0)) / u_texsize;
-
-  // 边缘检测（使用 STEP_SIZE 代替 step）
+  // 边缘检测（无UV扰动）
   vec4 maxed = max(max(max(texture2D(u_texture, T + vec2(0, STEP_SIZE) * v), texture2D(u_texture, T + vec2(0, -STEP_SIZE) * v)), texture2D(u_texture, T + vec2(STEP_SIZE, 0) * v)), texture2D(u_texture, T + vec2(-STEP_SIZE, 0) * v));
 
   vec4 color = texture2D(u_texture, T);
@@ -217,13 +215,14 @@ void main(){
       color.a = ALPHA;
     }
 
-    // 螺旋星系 —— 基于屏幕坐标，不受相机缩放/偏移影响
-    // 直接用 v_texCoords 计算，不乘 u_texsize，不加 u_offset
-    vec2 q = v_texCoords;  // 0~1 屏幕空间
+    // 质量参数控制采样步长（默认1.0，越大质量越高但性能越低）
+    float quality = max(u_quality, 0.1);
+    vec2 q = v_texCoords;
     vec2 p = -1.0 + 2.0 * q;
     p.x *= RESOLUTION.x / RESOLUTION.y;
 
-    vec3 ro = vec3(0.0, 0.7, 2.0) * 0.75;
+    // 根据质量调整相机距离（质量高=拉近观察细节）
+    vec3 ro = vec3(0.0, 0.7, 2.0) * 0.75 / quality;
     vec3 la = vec3(0.0, 0.0, 0.0);
     vec3 up = vec3(-0.5, 1.0, 0.0);
     vec3 ww = normalize(la - ro);
@@ -234,7 +233,13 @@ void main(){
     vec3 galaxyCol = renderGalaxy(ro, rd);
     galaxyCol = postProcess(galaxyCol, q);
 
-    vec3 finalCol = mix(color.rgb, galaxyCol, 0.6);
-    gl_FragColor = vec4(finalCol, color.a);
+    // 采样背景纹理（屏幕固定，不受相机影响）
+    vec3 bgCol = texture2D(u_background, v_texCoords).rgb;
+
+    // 混合：背景 -> 星系 -> 前景
+    vec3 finalCol = mix(bgCol, galaxyCol, 0.6);
+    finalCol = mix(finalCol, color.rgb, color.a);
+
+    gl_FragColor = vec4(finalCol, max(color.a, galaxyCol.r + galaxyCol.g + galaxyCol.b > 0.01 ? 1.0 : 0.0));
   }
 }
