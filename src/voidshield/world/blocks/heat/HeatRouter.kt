@@ -56,7 +56,7 @@ class HeatRouter(name: String) : HeatBlock(name) {
         override fun draw() {
             //super.draw()
             Draw.z(Layer.shields + 5f)
-            Draw.rect(texture ?: Core.atlas.white(),x,y, 80f, 80f)
+            Draw.rect(texture,x,y, 80f, 80f)
             //TODO bottom和heat的贴图效果
         }
 
