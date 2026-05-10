@@ -16,7 +16,7 @@ main: "voidshield.VoidShieldMod"
 description: "代码编写: ZXS\n贴图制作: 花杨永瀛\n委托: 一得阁拉米"
 
 #the mod version
-version: 1.1
+version: alpha-01
 
 #the minimum game build required to run this mod
 minGameVersion: 154

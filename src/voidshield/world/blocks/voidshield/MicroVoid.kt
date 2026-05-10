@@ -1,6 +1,10 @@
 package voidshield.world.blocks.voidshield
 
+import arc.Core
 import arc.graphics.Color
+import arc.graphics.g2d.Draw
+import arc.graphics.g2d.TextureRegion
+import arc.math.Mathf
 import voidshield.world.blocks.HeatBlock
 import arc.util.Time
 import mindustry.Vars
@@ -12,12 +16,13 @@ import mindustry.gen.Bullet
 import mindustry.gen.Groups
 import mindustry.graphics.Pal
 import mindustry.ui.Bar
+import mindustry.world.Tile
+import mindustry.world.Tiles
 import mindustry.world.meta.Stat
 import voidshield.other.VsVars
 import voidshield.other.dateTypes.SpaceDate
 import voidshield.other.interfaces.SpaceDateInterface
 import voidshield.world.blocks.HeatStat
-import kotlin.math.roundToInt
 import kotlin.random.Random
 
 
@@ -28,6 +33,8 @@ class MicroVoid(name: String) : HeatBlock(name) {
     var maxArea: Float = 50f
 
     var defaultHeat: Float = 5f//待机时升温速度
+
+    var glowRegion: MutableMap<Int, TextureRegion> = HashMap()
 
     init {
         updateClipRadius(Vars.world.width() * 8f)
@@ -57,6 +64,12 @@ class MicroVoid(name: String) : HeatBlock(name) {
         }
     }
 
+    override fun load() {
+        super.load()
+        glowRegion[0] = Core.atlas.find(this.name + "-glow1")
+        glowRegion[1] = Core.atlas.find(this.name + "-glow2")
+    }
+
     open inner class MicroVoidBuild : HeatBuild(), SpaceDateInterface {
 
         override var spaces: MutableMap<Int, SpaceDate.FieldZone> = HashMap()
@@ -64,6 +77,8 @@ class MicroVoid(name: String) : HeatBlock(name) {
         var nowWattage: Float = 0f
 
         var practicalMaxArea: Float = maxArea * 64f
+
+        var smoothAlpha = 0f
 
         override fun canActiveZone(id: Int): Boolean = efficiency > 0
 
@@ -73,13 +88,6 @@ class MicroVoid(name: String) : HeatBlock(name) {
             nowWattage > 1 -> defaultHeat + nowWattage * 36f//超载时
             else -> 0f
         } / specificHeat * Time.delta / 0.5f
-
-        override fun draw() {
-            super.draw()
-            if (efficiency > 0) {
-                
-            }
-        }
 
         override fun updateTile() {
             super.updateTile()
@@ -152,8 +160,8 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
         fun addCircle(x: Float, y: Float, radius: Float, effect: Float, lifeTime: Float): SpaceDate.CircleZone? {
             val zone = addCircle(x, y, radius, effect) ?: return null
-            VsVars.shaders.spaceDistortion.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius * 5)
-            VsVars.shaders.spaceDistortion.setLifeCycle("[Zone]${zone.id}",lifeTime * 40,0.5f,false)
+            VsVars.v1Shaders.spaceDistortion.addCircleRegion("[Zone]${zone.id}",zone.x,zone.y,zone.radius * 5)
+            VsVars.v1Shaders.spaceDistortion.setLifeCycle("[Zone]${zone.id}",lifeTime * 40,0.5f,false)
             Time.run(lifeTime * 30) {
                 removeZone(zone)
             }

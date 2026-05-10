@@ -27,23 +27,6 @@ class HeatRouter(name: String) : HeatBlock(name) {
         rotate = false
     }
 
-    var texture: TextureRegion = Core.atlas.white()
-
-    override fun load() {
-        super.load()
-        Core.assets.load("sprites/space.png", Texture::class.java, object : TextureParameter() {
-            init {
-                this.magFilter = TextureFilter.linear
-                this.minFilter = TextureFilter.mipMapLinearLinear
-                this.wrapV = TextureWrap.mirroredRepeat
-                this.wrapU = this.wrapV
-                this.genMipMaps = true
-            }
-        }).loaded = Cons { t: Texture ->
-            texture = TextureRegion(t)
-        }
-    }
-
     open inner class HeatRouterBuild : HeatBuild() {
         var linkBuild: MutableList<HeatBuild> = mutableListOf()
         override fun updateTile() {
@@ -54,9 +37,7 @@ class HeatRouter(name: String) : HeatBlock(name) {
         }
 
         override fun draw() {
-            //super.draw()
-            Draw.z(Layer.shields + 5f)
-            Draw.rect(texture,x,y, 80f, 80f)
+            super.draw()
             //TODO bottom和heat的贴图效果
         }
 

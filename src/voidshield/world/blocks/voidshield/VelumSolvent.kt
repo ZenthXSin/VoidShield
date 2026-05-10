@@ -1,6 +1,11 @@
 package voidshield.world.blocks.voidshield
 
+import arc.graphics.Color
 import arc.graphics.g2d.Draw
+import arc.graphics.g2d.Fill
+import arc.graphics.g2d.Lines
+import arc.math.Interp
+import arc.math.geom.Polygon
 import arc.util.Time
 import arc.util.io.Reads
 import arc.util.io.Writes
@@ -15,6 +20,7 @@ import voidshield.world.blocks.HeatStat
 import kotlin.math.*
 import mindustry.ui.Bar
 import mindustry.gen.Building
+import mindustry.graphics.Layer
 
 class VelumSolvent(name: String) : HeatBlock(name) {
 
@@ -64,6 +70,14 @@ class VelumSolvent(name: String) : HeatBlock(name) {
         var practicalMaxArea: Float = maxArea * 64f
 
         var nowWattage: Float = 0f
+
+        var hasBullet = false
+
+        var hitAlpha: Float = 0f
+
+        var hitTimer: Float = 0f
+
+        val hitDuration: Float = 30f
 
         init {
             updateClipRadius(Vars.world.width() * 8f)
@@ -146,9 +160,50 @@ class VelumSolvent(name: String) : HeatBlock(name) {
         override fun shouldUpdateEffectValue(): Boolean = false
 
         override fun drawEffectStatus(zone: SpaceDate.FieldZone) {
-            if (zone !is SpaceDate.CircleZone) return
+            fun drawZone() {
+                when (zone) {
+                    is SpaceDate.CircleZone -> {
+                        Fill.circle(zone.x, zone.y, zone.radius)
+                    }
+
+                    is SpaceDate.PolygonZone -> {
+                        val vertices = zone.vertices
+                        if (vertices.size >= 6 && vertices.size % 2 == 0) {
+                            val polygon = Polygon()
+                            polygon.vertices = vertices
+                            Fill.poly(polygon)
+                        }
+                    }
+                }
+            }
+
             Draw.color(Pal.accent)
-            Drawf.circles(zone.x, zone.y, zone.radius)
+            Draw.z(Layer.shields + 5f)
+            drawZone()
+
+            if (hasBullet && hitAlpha > 0f) {
+                val progress = hitTimer / hitDuration
+                val fadeAlpha = Interp.fade.apply(1f - progress)
+
+                Draw.color(Color.white)
+                Draw.z(Layer.shields + 7f)
+                Draw.alpha(fadeAlpha * 0.5f)
+                drawZone()
+
+                hitTimer += Time.delta
+                hitAlpha = max(0f, hitDuration - hitTimer)
+
+                if (hitAlpha <= 0f) {
+                    hasBullet = false
+                    hitTimer = 0f
+                }
+            }
+        }
+
+        fun triggerHitEffect() {
+            hasBullet = true
+            hitAlpha = hitDuration
+            hitTimer = 0f
         }
 
         override fun shouldDrawEffectStatus(): Boolean {

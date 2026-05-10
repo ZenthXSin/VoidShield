@@ -64,7 +64,7 @@ object JsonShaderLoader {
                         }
                     }
 
-                    VsVars.shaders.shaders[conf.name] = shader
+                    VsVars.v1Shaders.shaders[conf.name] = shader
                     Log.info("[JsonShader] 已注册着色器: @ (vert=@, frag=@)", conf.name, conf.vert, conf.frag)
                 } catch (e: Exception) {
                     Log.err("[JsonShader] 加载着色器失败: @ (vert=@, frag=@)", conf.name, conf.vert, conf.frag)

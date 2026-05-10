@@ -69,41 +69,6 @@ class VSControl : LStatement() {
     }
 
     fun rebuild(table: Table) {
-//        when (type) {
-//            ControlMode.Default -> {
-//                table.table { i ->
-//                    i.left()
-//                    i.add(" MicroVoid ")
-//                    field(i, vars[0]) { str -> vars[0] = str }.width(80f)
-//                    i.add(" CorVacuum ")
-//                    field(i, vars[1]) { str -> vars[1] = str }.width(80f)
-//                }.growX().left().row()
-//                row(table)
-//                table.table { i ->
-//                    i.left()
-//                    i.add(" x ")
-//                    field(i, vars[2]) { str -> vars[2] = str }.width(80f)
-//                    i.add(" y ")
-//                    field(i, vars[3]) { str -> vars[3] = str }.width(80f)
-//                    i.add(" range ")
-//                    field(i, vars[4]) { str -> vars[4] = str }.width(80f)
-//                }.growX().left()
-//            }
-//            ControlMode.Clear -> {
-//                table.table { i ->
-//                    i.left()
-//                    i.add(" VelumSolvent ")
-//                    field(i, vars[0]) { str -> vars[0] = str }.width(80f)
-//                }.growX().left().row()
-//
-//            }
-//            ControlMode.Bind -> {
-//                row(table)
-//                field(table, vars[0]) { str -> vars[0] = str }.width(80f)
-//                table.add(" to ")
-//                field(table, vars[1]) { str -> vars[1] = str }.width(80f)
-//            }
-//        }
         table.table { i ->
             i.left()
             i.color.set(table.color)
@@ -228,6 +193,7 @@ class ControlI(
                                 ) && bullet.team != build2.team()
                             }.forEach { b ->
                                 build1.addCircle(b.x, b.y, 8f, 5f, 0.3f)
+                                build2.triggerHitEffect()
                             }
                         }
 

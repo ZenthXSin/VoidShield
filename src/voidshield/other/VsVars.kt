@@ -2,11 +2,6 @@ package voidshield.other
 
 import arc.Core
 import arc.Events
-import arc.assets.loaders.TextureLoader.TextureParameter
-import arc.func.Cons
-import arc.graphics.Texture
-import arc.graphics.Texture.TextureFilter
-import arc.graphics.Texture.TextureWrap
 import arc.graphics.g2d.Draw
 import arc.math.geom.Rect
 import arc.util.Log
@@ -21,6 +16,7 @@ import voidshield.other.extends.other.Settings
 import voidshield.shader.v1.DefaultShader
 import voidshield.shader.v1.JsonShaderLoader
 import voidshield.shader.v1.TestShader
+import voidshield.shader.v2.V2Shaders
 import voidshield.world.effects.effect.TeleportEffect.loadJson
 import voidshield.world.shaders.BlackHoleShader
 import voidshield.world.shaders.HeatShader
@@ -30,7 +26,9 @@ object VsVars {
 
     var modName = "voidshield"
 
-    var shaders = Shaders()
+    var v1Shaders = V1Shaders()
+
+    var v2Shaders = V2Shaders()
 
     var logicCategory: LogicCategory = LogicCategory()
 
@@ -39,7 +37,7 @@ object VsVars {
     fun load() {
         Log.info("[VsVars] VsVars Loading")
         world.load()
-        shaders.load()
+        v1Shaders.load()
         JsonShaderLoader.loadJson(modName)
         Events.run(EventType.ClientLoadEvent::class.java) {
             loadJson(modName)
@@ -53,7 +51,7 @@ class Skills {
     var blackHole: BlackHole = BlackHole()
 }
 
-class Shaders {
+class V1Shaders {
     var shaders: MutableMap<String, DefaultShader> = mutableMapOf()
     var heatShader: HeatShader = addShader("HeatShader", HeatShader()) as HeatShader
     var blackHole: BlackHoleShader = addShader("BlackHole", BlackHoleShader()) as BlackHoleShader

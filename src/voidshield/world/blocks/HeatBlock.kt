@@ -280,14 +280,14 @@ open class HeatBlock(name: String) : Block(name) {
         }
         override fun getMeshId(): String = "[${this.block.name}][$x][$y]"
         override fun setGradient() {
-            VsVars.shaders.voidShield.setMeshAlpha(getMeshId(),temperaturePercent)
+            VsVars.v1Shaders.heatShader.setMeshAlpha(getMeshId(),temperaturePercent)
         }
         override fun setShader() {
-            VsVars.shaders.voidShield.addCircleRegion(getMeshId(), x, y, size * 8f)
+            VsVars.v1Shaders.heatShader.addCircleRegion(getMeshId(), x, y, size * 8f)
         }
 
         override fun dispose() {
-            VsVars.shaders.voidShield.remove(getMeshId())
+            VsVars.v1Shaders.heatShader.remove(getMeshId())
         }
     }
 }

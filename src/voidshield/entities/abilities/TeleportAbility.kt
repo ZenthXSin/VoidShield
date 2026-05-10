@@ -15,8 +15,6 @@ import mindustry.content.StatusEffects
 import mindustry.entities.Effect
 import mindustry.entities.abilities.Ability
 import mindustry.entities.bullet.BulletType
-import mindustry.gen.Bullet
-import mindustry.gen.Groups
 import mindustry.gen.Sounds
 import mindustry.gen.Unit
 import mindustry.graphics.Pal
@@ -65,7 +63,7 @@ class TeleportSoundData {
 
 class TeleportAbility : Ability {
     // 配置参数
-    var data: TeleportData = TeleportData().apply {
+    var teleportData: TeleportData = TeleportData().apply {
         readyTime = 290f
         endTime = 130f
         effects.add(TeleportEffectData().apply {
@@ -100,25 +98,25 @@ class TeleportAbility : Ability {
     override fun addStats(t: Table) {
         t.table {
             t.row()
-            it.add("跃迁范围: ${data.range} 格").row()
-            it.add("冷却: ${data.cooldown / 60} 秒").left().row()
+            it.add("跃迁范围: ${teleportData.range} 格").row()
+            it.add("冷却: ${teleportData.cooldown / 60} 秒").left().row()
         }
     }
 
     override fun displayBars(unit: Unit, bars: Table) {
         super.displayBars(unit, bars)
-        bars.add(Bar("跃迁充能", Pal.accent) { coolDown / data.cooldown })
+        bars.add(Bar("跃迁充能", Pal.accent) { coolDown / teleportData.cooldown })
     }
 
     fun teleport(x: Float, y: Float, range: Float, unit: Unit) {
         if (!isCooldown && !charging) {
             val angleToMouse = Angles.angle(unit.x, unit.y, x, y)
-            if (Angles.angle(unit.x, unit.y, x, y) <= data.range && Angles.within(unit.rotation, angleToMouse, 5f)) {
+            if (Angles.angle(unit.x, unit.y, x, y) <= teleportData.range && Angles.within(unit.rotation, angleToMouse, 5f)) {
                 val newVec2 = shortenLineVec(Vec2(unit.x, unit.y), Vec2(x, y), range)
                 targetX = newVec2.x
                 targetY = newVec2.y
                 charging = true
-                unit.apply(data.statusEffect, data.statusTime)
+                unit.apply(teleportData.statusEffect, teleportData.statusTime)
             }
         }
     }
@@ -134,31 +132,31 @@ class TeleportAbility : Ability {
                     targetX = mouseX
                     targetY = mouseY
                     charging = true
-                    unit.apply(data.statusEffect, data.statusTime)
+                    unit.apply(teleportData.statusEffect, teleportData.statusTime)
                     startRotate = false
                 }
             }
         if (charging) {
             time += Time.delta
             if (!startTeleport) {
-                if (data.useDefaultEffect) {
+                if (teleportData.useDefaultEffect) {
                     // 创建新的状态对象
                     readyState = TeleportEffect.ReadyState()
                     endState = TeleportEffect.EndState()
                 }
-                if (data.useDefaultEffect) {
+                if (teleportData.useDefaultEffect) {
                     VSEffects.readyTeleportEffect.at(unit.x, unit.y, unit.rotation, readyState)
                     Time.run(291f) {
                         VSEffects.endTeleportEffect.at(unit.x, unit.y, unit.rotation, endState)
                     }
                 }
                 startTeleport = true
-                Time.run(data.readyTime) {
+                Time.run(teleportData.readyTime) {
                     unit.x(targetX)
                     unit.y(targetY)
                     if (unit.isPlayer) Core.camera.position.set(unit)
                 }
-                Time.run(data.readyTime + data.endTime) {
+                Time.run(teleportData.readyTime + teleportData.endTime) {
                     isCooldown = true
                     charging = false
                     startTeleport = false
@@ -167,31 +165,31 @@ class TeleportAbility : Ability {
                     runEffect = Seq()
                 }
             }
-            if (!data.useDefaultEffect) {
-                data.effects.forEach { i ->
+            if (!teleportData.useDefaultEffect) {
+                teleportData.effects.forEach { i ->
                     if (runEffect.contains(i.effect)) return
                     if (i.startTime <= time) {
                         runEffect.add(i.effect)
                         i.effect.at(unit, unit.rotation)
                     }
                 }
-                data.bullets.forEach { i ->
+                teleportData.bullets.forEach { i ->
                     if (runBullet.contains(i.bullet)) return
                     if (i.startTime <= time) {
                         runBullet.add(i.bullet)
                         i.bullet.create(unit,unit.team(),unit.x,unit.y,unit.rotation)
                     }
                 }
-                data.sounds.forEach { i ->
+                teleportData.sounds.forEach { i ->
                     if (i.startTime <= time && (time - i.startTime) <= 5) {
                         Vars.control.sound.loop(i.sound, unit, i.volume)
                     }
                 }
             }
         }
-        if (isCooldown && coolDown >= data.cooldown) {
+        if (isCooldown && coolDown >= teleportData.cooldown) {
             isCooldown = false
-            coolDown = data.cooldown
+            coolDown = teleportData.cooldown
         }
         if (isCooldown) {
             coolDown += Time.delta
@@ -201,7 +199,7 @@ class TeleportAbility : Ability {
                 unit.y,
                 targetX,
                 targetY
-            ) <= data.range * 8)
+            ) <= teleportData.range * 8)
         ) {
             if (ready && !touch) {
                 ready = false

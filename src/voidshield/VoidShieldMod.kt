@@ -7,12 +7,6 @@ import arc.graphics.g2d.Draw
 import arc.graphics.gl.Shader
 import arc.util.Log
 import mindustry.Vars
-import mindustry.content.Planets
-import mindustry.game.EventType
-import mindustry.graphics.Layer
-import mindustry.graphics.Shaders
-import mindustry.graphics.g3d.HexMesh
-import mindustry.graphics.g3d.SunMesh
 import mindustry.mod.Mod
 import mindustry.type.Planet
 import voidshield.content.VSBlocks
@@ -22,7 +16,6 @@ import voidshield.other.extends.logicExtend.LTeleport
 import voidshield.other.extends.logicExtend.voidShield.VSControl
 import voidshield.other.extends.logicExtend.voidShield.VSSensor
 import voidshield.shader.ShaderManage
-import voidshield.shader.v2.TestV2
 
 class VoidShieldMod : Mod() {
 
@@ -36,19 +29,6 @@ class VoidShieldMod : Mod() {
         applyCategory(VSBlocks.heat)
         applyCategory(VSBlocks.voidShield)
         Log.info("[Void Shield] Mod initialized")
-
-        val shader = TestV2()
-
-        //着色器测试
-
-        Events.run(EventType.Trigger.draw) {
-            Draw.drawRange(Layer.shields + 5f,0.01f, {
-                Vars.renderer.effectBuffer.begin()
-            }) {
-                Vars.renderer.effectBuffer.end()
-                Vars.renderer.effectBuffer.blit(shader)
-            }
-        }
     }
 
     override fun loadContent() {

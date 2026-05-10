@@ -65,7 +65,7 @@ class DrawShader : DrawBlock(), BlockShader {
     }
 
     fun getShader(): DefaultShader {
-        return VsVars.shaders.shaders[shaderName] ?: VsVars.shaders.defaultShader
+        return VsVars.v1Shaders.shaders[shaderName] ?: VsVars.v1Shaders.defaultShader
     }
 
     override fun setGradient() {

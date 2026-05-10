@@ -2,26 +2,22 @@ package voidshield.content
 
 import arc.graphics.Blending
 import arc.graphics.Color
+import arc.graphics.g2d.Draw
 import arc.math.Interp
 import arc.struct.Seq
 import mindustry.content.Items
 import mindustry.content.Liquids
 import mindustry.type.Category
 import mindustry.type.ItemStack
-import mindustry.world.draw.DrawBlock
+import mindustry.world.draw.*
 import mindustry.world.draw.DrawDefault
-import mindustry.world.draw.DrawGlowRegion
-import mindustry.world.draw.DrawMulti
-import mindustry.world.draw.DrawParticles
-import mindustry.world.draw.DrawPulseShape
-import mindustry.world.draw.DrawRegion
-import voidshield.world.blocks.heat.HeaterBlock
-import voidshield.other.extends.categoryExtend.registerCategory
-import voidshield.world.blocks.voidshield.CorVacuum
 import voidshield.other.drawers.DrawHeat
+import voidshield.other.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.heat.HeatCatheter
 import voidshield.world.blocks.heat.HeatCrossover
 import voidshield.world.blocks.heat.HeatRouter
+import voidshield.world.blocks.heat.HeaterBlock
+import voidshield.world.blocks.voidshield.CorVacuum
 import voidshield.world.blocks.voidshield.MicroVoid
 import voidshield.world.blocks.voidshield.VelumSolvent
 
@@ -141,7 +137,26 @@ object VSBlocks {
             size = 5
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
             hasPower = true
-            drawer = DrawMulti(Seq.with(DrawRegion("-bottom"), DrawDefault(), DrawGlowRegion().apply {
+            drawer = DrawMulti(Seq.with(DrawRegion("-bottom"),DrawGlowRegion().apply {
+                suffix = "-glow1"
+                blending = Blending.additive
+                glowScale = 40f
+                glowIntensity = 0.8f
+                alpha = 0.7f
+                color = Color.valueOf("fff3d6")
+            }, DrawGlowRegion().apply {
+                suffix = "-glow2"
+                blending = Blending.additive
+                glowScale = 20f
+                alpha = 0.6f
+                glowIntensity = 0.7f
+                color = Color.valueOf("fff3d6")
+            }, DrawFade().apply {
+                Draw.color(Color.valueOf("fff3d6"))
+                suffix = "-glow1"
+                alpha = 0.3f
+                scale = 8f
+            } , DrawDefault(), DrawGlowRegion().apply {
                 suffix = "-light"
             }, DrawParticles().apply {
                 color = Color.valueOf("fff3d6")
@@ -153,13 +168,29 @@ object VSBlocks {
                 alpha = 0.7f
                 particleInterp = Interp.PowIn(1.5f)
                 blending = Blending.additive
-            }))
+            }, DrawHeat()))
             consumePower(50f)
         }
 
         corVacuum = CorVacuum("cor-vacuum").apply {
             size = 8
             requirements(voidShield, ItemStack.with(Items.copper, 150, Items.lead, 100))
+            drawer = DrawMulti(Seq.with(DrawRegion("-bottom"), DrawPlasma().apply {
+                plasmas = 5
+                plasma1 = Color.valueOf("fff3d6")
+                plasma2 = Color.valueOf("f69583")
+            },DrawGlowRegion().apply {
+                suffix = "-glow1"
+                alpha = 0.2f
+                glowScale = 120f
+                color = Color.valueOf("d888cf")
+            }, DrawGlowRegion().apply {
+                suffix = "-glow2"
+                alpha = 0.5f
+                color = Color.valueOf("fff3d6")
+                glowScale = 40f
+                alpha = 0.4f
+            }, DrawDefault(), DrawHeat("-glow2").apply { alpha = 0.5f }, DrawRegion("-top")))
             hasPower = true
             consumePower(50f)
         }
