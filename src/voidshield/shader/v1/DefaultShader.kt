@@ -148,10 +148,16 @@ open class DefaultShader(vert: String = "default", frag: String = "default") : V
 
 
     override fun setUniformf() {
+        val screenWidth = Core.graphics.width.toFloat().coerceAtLeast(1f)
+        val screenHeight = Core.graphics.height.toFloat().coerceAtLeast(1f)
+
         shader.setUniformf("u_color", Color.white)
         shader.setUniformMatrix4("u_proj", Core.camera.mat)
         shader.setUniformMatrix4("u_trns", transform.idt())
         shader.setUniformf("u_camsize", Core.camera.width, Core.camera.height)
+        shader.setUniformf("u_resolution", screenWidth, screenHeight)
+        shader.setUniformf("u_texsize", screenWidth, screenHeight)
+        shader.setUniformf("u_invsize", 1f / screenWidth, 1f / screenHeight)
 
         shader.setUniformf("u_time", Time.time / 60f)
     }

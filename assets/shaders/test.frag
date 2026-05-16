@@ -10,7 +10,7 @@ uniform float u_time;
 uniform float u_dp;
 uniform vec2 u_offset;
 
-varying vec2 v_texCoords;
+varying vec2 v_texCoord;
 
 // ========== 3D 噪声函数（来自提供的热浪代码） ==========
 float hash(float n) {
@@ -44,7 +44,7 @@ float fbm(vec3 p) {
 // ====================================================
 
 void main() {
-    vec2 uv = v_texCoords;   // 直接使用纹理坐标（固定缩放，不受相机影响）
+    vec2 uv = v_texCoord;   // 直接使用纹理坐标（固定缩放，不受相机影响）
 
     // ===== 热浪扭曲参数（可自行调节） =====
     float heatStrength = 0.03;
