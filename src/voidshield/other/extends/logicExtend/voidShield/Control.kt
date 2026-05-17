@@ -95,6 +95,15 @@ class VSControl : LStatement() {
 
                 }
 
+                ControlMode.AutoBlock -> {
+                    row(i, true) { table ->
+                        table.add(" MicroVoid ")
+                        field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                        table.add(" CorVacuum ")
+                        field(table, vars[1]) { str -> vars[1] = str }.width(80f)
+                    }
+                }
+
                 ControlMode.ClearZone -> {
                     i.left()
                     i.add(" VelumSolvent ")
@@ -124,6 +133,23 @@ class VSControl : LStatement() {
                     row(i, true) { table ->
                         table.add(" VelumSolvent ")
                         field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                    }
+                }
+
+                ControlMode.UpdateZone -> {
+                    row(i, true) { table ->
+                        table.add(" x ")
+                        field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                        table.add(" y ")
+                        field(table, vars[1]) { str -> vars[1] = str }.width(80f)
+                        row(table) {
+                            table.add(" tx ")
+                            field(table, vars[2]) { str -> vars[2] = str }.width(80f)
+                            table.add(" ty ")
+                            field(table, vars[3]) { str -> vars[3] = str }.width(80f)
+                            table.add(" VelumSolvent ")
+                            field(table, vars[4]) { str -> vars[4] = str }.width(80f)
+                        }
                     }
                 }
             }
@@ -236,6 +262,28 @@ class ControlI(
 
             }
 
+            ControlMode.AutoBlock -> {
+                val build1 = lVars[0].building() as? MicroVoid.MicroVoidBuild ?: return
+                val build3 = lVars[1].building() as? CorVacuum.CorVacuumBuild ?: return
+
+                build1.builds.forEach { build ->
+                    val build2 = build as VelumSolventBuild
+                    if (!(build1.efficiency == 0f || build2.efficiency == 0f || build3.efficiency == 0f)) {
+                        build2.spaces.forEach { (_, zone) ->
+                            Groups.bullet.filterIndexed { _, bullet ->
+                                zone.contains(
+                                    bullet.x,
+                                    bullet.y
+                                ) && bullet.team != build2.team()
+                            }.forEach { b ->
+                                build1.addCircle(b.x, b.y, 8f, 5f, 0.3f)
+                                build2.triggerHitEffect()
+                            }
+                        }
+                    }
+                }
+            }
+
             ControlMode.ClearZone -> {
                 val build = lVars[0].building() as? VelumSolventBuild ?: return
 
@@ -258,15 +306,12 @@ class ControlI(
 
                 tmp[exec.build.id]?.add("Circle | $x | $y | $radius")
 
-                println("写入缓存")
                 println(tmp[exec.build.id])
             }
             ControlMode.UseZone -> {
                 val build = lVars[0].building() as? VelumSolventBuild ?: return
 
                 tmp[exec.build.id]?.forEach {
-                    println("读取缓存")
-                    println(it)
                     val split = it.split(" | ")
                     when (split[0]) {
                         "Circle" -> {
@@ -280,6 +325,24 @@ class ControlI(
                 }
 
                 tmp[exec.build.id]?.clear()
+            }
+
+            ControlMode.UpdateZone -> {
+                val x = lVars[0].numfWorld()
+                val y = lVars[1].numfWorld()
+                val tx = lVars[2].numfWorld()
+                val ty = lVars[3].numfWorld()
+                val build = lVars[4].building() as? VelumSolventBuild ?: return
+
+                if (build.efficiency == 0f) return
+                when (val zone = build.getZoneByPos(x,y)) {
+                    is SpaceDate.CircleZone -> {
+                        VsVars.world.spaceDate.updateCirclePosition(zone, tx, ty)
+                    }
+                    is SpaceDate.PolygonZone -> {
+                        VsVars.world.spaceDate.updatePolygonPosition(zone, tx, ty)
+                    }
+                }
             }
         }
     }

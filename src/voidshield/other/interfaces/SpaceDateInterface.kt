@@ -335,4 +335,8 @@ interface SpaceDateInterface {
     fun containsZone(id: Int, x: Float, y: Float): Boolean {
         return VsVars.world.spaceDate.contains(id, x, y)
     }
+
+    fun getZoneByPos(x: Float, y: Float): SpaceDate.FieldZone? {
+        return VsVars.world.spaceDate.queryPoint(x, y).find { spaces.contains(it.id) }
+    }
 }
