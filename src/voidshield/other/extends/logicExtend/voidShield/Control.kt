@@ -31,27 +31,6 @@ class VSControl : LStatement() {
     }
 
     override fun build(table: Table) {
-        table.table { i ->
-            i.left()
-            i.color.set(table.color)
-
-            i.clearChildren()
-            i.defaults() // Reset any defaults that might have been set
-            row(i, true) { i1 ->
-                i1.button({ b: Button? ->
-                    b!!.label { type.name }
-                    b.clicked {
-                        showSelect(b, ControlMode.all, type, { t: ControlMode ->
-                            type = t
-                            vars = mutableListOf()
-                            type.params.forEach { vars += it }
-                            rebuild(i1)
-                        }, 2, { cell: Cell<*>? -> cell!!.size(100f, 50f) })
-                    }
-                }, Styles.logict, {}).size(120f, 40f).color(i1.color).padLeft(2f)
-            }
-        }.left()
-        table.row()
         rebuild(table)
     }
 
@@ -69,6 +48,28 @@ class VSControl : LStatement() {
     }
 
     fun rebuild(table: Table) {
+        table.clearChildren()
+        table.table { i ->
+            i.left()
+            i.color.set(table.color)
+
+            i.clearChildren()
+            i.defaults() // Reset any defaults that might have been set
+            row(i, true) { i1 ->
+                i1.button({ b: Button? ->
+                    b!!.label { type.name }
+                    b.clicked {
+                        showSelect(b, ControlMode.all, type, { t: ControlMode ->
+                            type = t
+                            vars = mutableListOf()
+                            type.params.forEach { vars += it }
+                            rebuild(table)
+                        }, 2, { cell: Cell<*>? -> cell!!.size(100f, 50f) })
+                    }
+                }, Styles.logict, {}).size(120f, 40f).color(i1.color).padLeft(2f)
+            }
+        }.left()
+        table.row()
         table.table { i ->
             i.left()
             i.color.set(table.color)
@@ -94,7 +95,7 @@ class VSControl : LStatement() {
 
                 }
 
-                ControlMode.Clear -> {
+                ControlMode.ClearZone -> {
                     i.left()
                     i.add(" VelumSolvent ")
                     field(i, vars[0]) { str -> vars[0] = str }.width(80f)
@@ -106,6 +107,24 @@ class VSControl : LStatement() {
                     field(i, vars[0]) { str -> vars[0] = str }.width(80f)
                     i.add(" to ")
                     field(i, vars[1]) { str -> vars[1] = str }.width(80f)
+                }
+
+                ControlMode.CircleZone -> {
+                    row(i, true) { table ->
+                        table.add(" x ")
+                        field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                        table.add(" y ")
+                        field(table, vars[1]) { str -> vars[1] = str }.width(80f)
+                        table.add(" range ")
+                        field(table, vars[2]) { str -> vars[2] = str }.width(80f)
+                    }
+                }
+
+                ControlMode.UseZone -> {
+                    row(i, true) { table ->
+                        table.add(" VelumSolvent ")
+                        field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                    }
                 }
             }
             i.left()
@@ -173,7 +192,14 @@ class VSControl : LStatement() {
 class ControlI(
     var lVars: MutableList<LVar>, var mode: ControlMode
 ) : LExecutor.LInstruction {
+
+    companion object {
+        val tmp: MutableMap<Int, MutableList<String>> = mutableMapOf()
+    }
+
     override fun run(exec: LExecutor) {
+        if (tmp[exec.build.id] == null) tmp[exec.build.id] = mutableListOf()
+
         when (mode) {
             ControlMode.Default -> {
                 val build1 = lVars[0].building() as? MicroVoid.MicroVoidBuild ?: return
@@ -198,7 +224,7 @@ class ControlI(
                         }
 
                         if (build2.spaces.isEmpty()) {
-                            build2.addCircle(0f, 0f, radius)
+                            build2.addCircle(x, y, radius)
                         }
 
                         build2.update {
@@ -210,12 +236,12 @@ class ControlI(
 
             }
 
-            ControlMode.Clear -> {
+            ControlMode.ClearZone -> {
                 val build = lVars[0].building() as? VelumSolventBuild ?: return
 
                 if (build.efficiency == 0f) return
 
-                build.clear()
+                build.clearZone()
             }
 
             ControlMode.Bind -> {
@@ -223,6 +249,37 @@ class ControlI(
                 val build2 = lVars[1].building() as? BindBuilding ?: return
 
                 build2.bind(build1)
+            }
+
+            ControlMode.CircleZone -> {
+                val x = lVars[0].numfWorld()
+                val y = lVars[1].numfWorld()
+                val radius = lVars[2].numfWorld()
+
+                tmp[exec.build.id]?.add("Circle | $x | $y | $radius")
+
+                println("写入缓存")
+                println(tmp[exec.build.id])
+            }
+            ControlMode.UseZone -> {
+                val build = lVars[0].building() as? VelumSolventBuild ?: return
+
+                tmp[exec.build.id]?.forEach {
+                    println("读取缓存")
+                    println(it)
+                    val split = it.split(" | ")
+                    when (split[0]) {
+                        "Circle" -> {
+                            val x = split[1].toFloatOrNull() ?: 0f
+                            val y = split[2].toFloatOrNull() ?: 0f
+                            val radius = split[3].toFloatOrNull() ?: 0f
+                            if (build.efficiency == 0f) return
+                            build.addCircle(x, y, radius)
+                        }
+                    }
+                }
+
+                tmp[exec.build.id]?.clear()
             }
         }
     }

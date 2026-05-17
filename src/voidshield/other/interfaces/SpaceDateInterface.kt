@@ -9,15 +9,14 @@ import voidshield.other.VsVars
 import voidshield.other.dateTypes.SpaceDate
 import voidshield.other.dateTypes.SpaceDate.PolygonZone
 import java.io.IOException
-import java.lang.reflect.Field
 
 interface SpaceDateInterface {
     var spaces: MutableMap<Int, SpaceDate.FieldZone>
 
     var extraContent: MutableMap<Int, Any>
 
-    fun clear() {
-        spaces.forEach { (_, i) ->
+    fun clearZone() {
+        spaces.keys.toList().forEach { i->
             removeZone(i)
         }
     }
