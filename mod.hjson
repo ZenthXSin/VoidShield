@@ -12,14 +12,79 @@ main: "voidshield.VoidShieldMod"
 #main: "voidshield.OtherMod"
 #main: "voidshield.Test"
 
-#the mod description as seen in the mod dialog
-description: "代码编写: ZXS\n贴图制作: 花杨永瀛\n委托: 一得阁拉米"
+description: "虚空盾
+
+一个由kotlin编写，参看战锤40k虚空盾的全新护盾系统
+
+全新的指令集，让护盾使用的自由度大大提高。全新的热量系统，与原版热量系统与众不同的体验
+
+全新的护盾机制，令人焕然一新
+需要一定的逻辑基础
+在这里，你可以：
+1. 创建一个自定义形状的护盾
+2. 可以通多逻辑来控制你的护盾
+3. 通过建筑的堆叠和逻辑优化不断升级你的护盾
+
+游玩指栏：
+首先，你需要建筑虚空之心，帷幕溶解器，空间穿刺机，和一个用于控制这个系统的逻辑处理器
+然后，为这个系统搭建其独立的散热线路
+最后，编写控制它们的逻辑
+
+逻辑编写指栏：
+
+首先，你需要使用CircleZone（或其他）来创建一个场，然后使用UseZone来将这个场加载到对应建筑，
+最后，使用UpdateZone来控制这个场
+
+如果你想要让它可以阻挡子弹，你需要使用Bind来把帷幕溶解器绑定给空间穿刺机，最后使用AutoBlock开启自动拦截
+这套逻辑将在未来继续扩展
+
+目前mod还在开发测试中，欢迎issue
+
+代码编写: ZXS
+贴图制作: 花杨永瀛
+委托: 一得阁拉米
+
+
+Void Shield
+
+A brand-new shield system written in Kotlin, inspired by Warhammer 40K's Void Shield.
+
+New instruction set, greatly improving the freedom of shield usage. New heat system, a completely different experience from the vanilla heat system.
+New shield mechanism, a refreshing new gameplay.
+
+Requires some basic knowledge of logic programming.
+
+Here, you can:
+
+1. Create shields with custom shapes
+2. Control shields via the Logic Processor
+3. Continuously upgrade shields through block stacking and logic optimization
+
+
+How to Play:
+First, build a Void Heart, a Veil Dissolver, a Spatial Piercer, and a Logic Processor to control this system
+Then, set up an independent cooling line for this system
+Finally, write logic to control them
+
+Logic Scripting Guide:
+
+First, use CircleZone (or others) to create a zone, then use UseZone to load that zone into the corresponding block,
+Finally, use UpdateZone to control that zone
+
+If you want it to block bullets, use Bind to bind the Veil Dissolver to the Spatial Piercer, then use AutoBlock to activate automatic interception
+This instruction set will continue to be expanded in the future.
+
+This mod is currently under active development and testing. Issues and feedback are welcome!
+
+Code: ZXS
+Sprites: 花杨永瀛
+Commission: 一得阁拉米"
 
 #the mod version
 version: alpha-01
 
 #the minimum game build required to run this mod
-minGameVersion: 154
+minGameVersion: 157
 
 #whether the mod should be loaded in multiplayer games
 multiplayerCompatible: true
