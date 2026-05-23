@@ -168,7 +168,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 
                     is SpaceDate.PolygonZone -> {
                         val vertices = zone.vertices
-                        if (vertices.size >= 6 && vertices.size % 2 == 0) {
+                        if (vertices.size >= 6) {
                             val polygon = Polygon()
                             polygon.vertices = vertices
                             Fill.poly(polygon)

@@ -3,6 +3,7 @@ package voidshield.other.extends.logicExtend.voidShield
 import arc.scene.ui.Button
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
+import arc.util.Log
 import mindustry.gen.Groups
 import mindustry.gen.LogicIO
 import mindustry.logic.LAssembler
@@ -126,6 +127,15 @@ class VSControl : LStatement() {
                         field(table, vars[1]) { str -> vars[1] = str }.width(80f)
                         table.add(" range ")
                         field(table, vars[2]) { str -> vars[2] = str }.width(80f)
+                    }
+                }
+
+                ControlMode.PolygonZone -> {
+                    row(i, true) { table ->
+                        table.add(" x ")
+                        field(table, vars[0]) { str -> vars[0] = str }.width(80f)
+                        table.add(" y ")
+                        field(table, vars[1]) { str -> vars[1] = str }.width(80f)
                     }
                 }
 
@@ -305,11 +315,19 @@ class ControlI(
                 val radius = lVars[2].numfWorld()
 
                 tmp[exec.build.id]?.add("Circle | $x | $y | $radius")
-
-                println(tmp[exec.build.id])
             }
+
+            ControlMode.PolygonZone -> {
+                val x = lVars[0].numfWorld()
+                val y = lVars[1].numfWorld()
+
+                tmp[exec.build.id]?.add("Polygon | $x | $y")
+            }
+
             ControlMode.UseZone -> {
                 val build = lVars[0].building() as? VelumSolventBuild ?: return
+
+                val polygonTmp: MutableList<Float> = mutableListOf()
 
                 tmp[exec.build.id]?.forEach {
                     val split = it.split(" | ")
@@ -321,7 +339,18 @@ class ControlI(
                             if (build.efficiency == 0f) return
                             build.addCircle(x, y, radius)
                         }
+                        "Polygon" -> {
+                            val x = split[1].toFloatOrNull() ?: 0f
+                            val y = split[2].toFloatOrNull() ?: 0f
+                            polygonTmp.add(x)
+                            polygonTmp.add(y)
+                        }
                     }
+                }
+
+                if (polygonTmp.size >= 6) {
+                    if (build.efficiency == 0f) return
+                    build.addPolygon(polygonTmp.toFloatArray())
                 }
 
                 tmp[exec.build.id]?.clear()
