@@ -15,6 +15,12 @@ interface SpaceDateInterface {
 
     var extraContent: MutableMap<Int, Any>
 
+    /** [getAllAreas] 的缓存值;脏时重算,否则 O(1) 返回 */
+    var spacesAreaCache: Float
+
+    /** spaces 变化后置 true,下次 [getAllAreas] 需重算 */
+    var spacesAreaDirty: Boolean
+
     fun clearZone() {
         spaces.keys.toList().forEach { i->
             removeZone(i)
@@ -224,6 +230,7 @@ interface SpaceDateInterface {
                 }
             }
             VsVars.world.spaceDate.rebuildIndex()
+            spacesAreaDirty = true
         } catch (e: IOException) {
             Log.warn("[SpaceDateInterface] Error while reading space date", e)
         }
@@ -232,10 +239,8 @@ interface SpaceDateInterface {
     fun writeSpace(w: Writes) {
         try {
             w.i(spaces.size)
-            // spaces 应该是 Map<FieldZone, Int>，遍历 entry
-            spaces.forEach { (zone, _) ->
-                // w.str() 写入字符串，不是 w.s()（w.s() 写入short）
-                val datap = VsVars.world.spaceDate.serializeZoneToString(zone) ?: ""
+            spaces.forEach { (id, _) ->
+                val datap = VsVars.world.spaceDate.serializeZoneToString(id) ?: ""
                 w.str(datap)
             }
         } catch (e: IOException) {
@@ -245,11 +250,15 @@ interface SpaceDateInterface {
 
 
     fun getAllAreas(): Float {
-        var area = 0f
-        spaces.forEach { (_, i) ->
-            area += VsVars.world.spaceDate.getArea(i)
+        if (spacesAreaDirty) {
+            var area = 0f
+            spaces.forEach { (_, i) ->
+                area += VsVars.world.spaceDate.getArea(i)
+            }
+            spacesAreaCache = area
+            spacesAreaDirty = false
         }
-        return area
+        return spacesAreaCache
     }
 
     /**
@@ -268,6 +277,7 @@ interface SpaceDateInterface {
                 VsVars.world.spaceDate.addCircle(x, y, radius, effect/* getMaxArea() > 0, getMaxArea()*/) ?: return null
             val id = zone.id
             spaces += Pair(id, zone)
+            spacesAreaDirty = true
             return zone
         }
         return null
@@ -290,6 +300,7 @@ interface SpaceDateInterface {
                 ?: return null
             val id = zone.id
             spaces += Pair(id, zone)
+            spacesAreaDirty = true
             return zone
         }
         return null
@@ -309,6 +320,7 @@ interface SpaceDateInterface {
                 VsVars.world.spaceDate.addPolygon(vertices, effect, getMaxArea() > 0, getMaxArea()) ?: return null
             val id = zone.id
             spaces += Pair(id, zone)
+            spacesAreaDirty = true
             return zone
         }
         return null
@@ -321,11 +333,12 @@ interface SpaceDateInterface {
             else -> return
         }
         spaces.remove(zone.id)
+        spacesAreaDirty = true
     }
 
     fun removeZone(id: Int) {
         VsVars.world.spaceDate.removeById(id)
-        spaces.remove(id)
+        if (spaces.remove(id) != null) spacesAreaDirty = true
     }
 
     fun containsZone(x: Float, y: Float): Boolean {

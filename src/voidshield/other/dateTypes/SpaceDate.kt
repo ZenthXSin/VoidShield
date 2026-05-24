@@ -73,7 +73,7 @@ class SpaceDate(worldBounds: Rect = Rect(0f, 0f, 2000f, 2000f)) {
         var vertices: FloatArray = verticesArray
 
         val tmpHitbox = Rect()
-        var cachedHitbox: Rect? = null
+        private var cachedHitbox: Rect? = null
 
         init {
             require(vertices.size >= 6) { "多边形至少需要3个顶点(6个float)" }
@@ -88,6 +88,8 @@ class SpaceDate(worldBounds: Rect = Rect(0f, 0f, 2000f, 2000f)) {
         }
 
         override fun hitbox(out: Rect) {
+            cachedHitbox?.let { out.set(it); return }
+
             var minX = Float.MAX_VALUE
             var maxX = -Float.MAX_VALUE
             var minY = Float.MAX_VALUE
@@ -117,7 +119,8 @@ class SpaceDate(worldBounds: Rect = Rect(0f, 0f, 2000f, 2000f)) {
                 vertices[i] += dx
                 vertices[i + 1] += dy
             }
-            cachedHitbox = null
+            // 平移不改变形状,只需增量更新缓存包围盒
+            cachedHitbox?.let { it.x += dx; it.y += dy }
         }
 
         fun setNewVertices(newVertices: FloatArray) {

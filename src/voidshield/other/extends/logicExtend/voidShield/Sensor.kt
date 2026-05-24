@@ -9,7 +9,6 @@ import mindustry.ui.Styles
 import voidshield.other.VsVars
 import voidshield.other.extends.logicExtend.*
 import voidshield.world.blocks.voidshield.VelumSolvent.VelumSolventBuild
-import mindustry.core.World
 
 class VSSensor : LStatement() {
 
@@ -92,7 +91,7 @@ class VSSensor : LStatement() {
         val build = StringBuilder()
         write(build)
         val read = LAssembler.read(build.toString(), true)
-        return if (read.size == 0) null else read.first() as VSSensor
+        return if (read.size == 0) null else read.first() as? VSSensor
     }
 
     companion object {
@@ -128,7 +127,7 @@ class SensorI(
     override fun run(exec: LExecutor) {
         when (mode) {
             SensorMode.Effect -> {
-                var p1 = lVars[0]
+                val p1 = lVars[0]
                 val p2 = lVars[1]
                 val build1 = lVars[2]
                 val out = lVars[3]
@@ -139,16 +138,15 @@ class SensorI(
                     return
                 }
 
-                val x = World.unconv(LEExtend.safeToString(p1).toFloatOrNull() ?: 0f)
-                val y = World.unconv(LEExtend.safeToString(p2).toFloatOrNull() ?: 0f)
+                val x = p1.numfWorld()
+                val y = p2.numfWorld()
 
-                //Log.info(VsVars.world.spaceDate.circles)
                 out.setnum(VsVars.world.spaceDate.getTotalEffect(x, y).toDouble())
 
             }
 
             SensorMode.Contains -> {
-                var p1 = lVars[0]
+                val p1 = lVars[0]
                 val p2 = lVars[1]
                 val build1 = lVars[2]
                 val out = lVars[3]
@@ -159,8 +157,8 @@ class SensorI(
                     return
                 }
 
-                val x = World.unconv(LEExtend.safeToString(p1).toFloatOrNull() ?: 0f)
-                val y = World.unconv(LEExtend.safeToString(p2).toFloatOrNull() ?: 0f)
+                val x = p1.numfWorld()
+                val y = p2.numfWorld()
                 out.setbool(VsVars.world.spaceDate.contains(x, y))
 
             }

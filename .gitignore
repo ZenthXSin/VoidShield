@@ -153,3 +153,8 @@ gradle-app.setting
 .DS_Store
 Thumbs.db
 android/libs/
+
+## VoidShield project-local
+/源码和示例/
+/.codegraph/
+/.kotlin/

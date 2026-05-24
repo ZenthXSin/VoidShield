@@ -39,7 +39,6 @@ open class DefaultShader(vert: String = "default", frag: String = "default") : V
 
     var screenBuffer: FrameBuffer? = null
     var captured = false
-    val tmpColor = Color()
     val lifeCycle = HashMap<String, LifeCycleData>()
     var time = 0f
 
@@ -54,13 +53,16 @@ open class DefaultShader(vert: String = "default", frag: String = "default") : V
         val vertexCount = buffer.limit() / vertexSize
         val a = alpha.coerceIn(0f, 1f)
 
+        // 只改 alpha:把 ABGR 中的 A 字节直接位运算替换。
+        // 0xFE 掩码保留 Arc 的 toFloatBits 把 bit 24 清零的约定,避免出现 NaN 破坏 GL 状态
+        val alphaShifted = (((a * 255f).toInt() and 0xFE) shl 24)
+        val rgbMask = 0x00FFFFFF
+
         for (i in 0 until vertexCount) {
             val colorIndex = i * vertexSize + 2
-            val colorBits = buffer.get(colorIndex)
-
-            tmpColor.abgr8888ToColor(java.lang.Float.floatToIntBits(colorBits))
-            tmpColor.a = a
-            buffer.put(colorIndex, tmpColor.toFloatBits())
+            val bits = java.lang.Float.floatToRawIntBits(buffer.get(colorIndex))
+            val newBits = (bits and rgbMask) or alphaShifted
+            buffer.put(colorIndex, java.lang.Float.intBitsToFloat(newBits))
         }
 
         buffer.position(0)
@@ -254,19 +256,30 @@ open class DefaultShader(vert: String = "default", frag: String = "default") : V
 
     open fun addCircleRegion(id: String, cx: Float, cy: Float, r: Float, seg: Int = 48) {
         if (seg < 3) return
-        val v = mutableListOf<FloatArray>()
+        // 预分配整段 FloatArray 顺序填充,避免每顶点小 FloatArray 分配 + concat 二次拷贝
+        val out = FloatArray(seg * 3 * 5)
+        val wb = whiteBits
+        var k = 0
         for (i in 0 until seg) {
             val a1 = Mathf.PI2 * i / seg
             val a2 = Mathf.PI2 * (i + 1) / seg
-            val x1 = cx + Mathf.cos(a1) * r;
-            val y1 = cy + Mathf.sin(a1) * r
-            val x2 = cx + Mathf.cos(a2) * r;
-            val y2 = cy + Mathf.sin(a2) * r
-            v += regionVertex(cx, cy, 0.5f, 0.5f)
-            v += regionVertex(x1, y1, 0.5f + Mathf.cos(a1) * 0.5f, 0.5f + Mathf.sin(a1) * 0.5f)
-            v += regionVertex(x2, y2, 0.5f + Mathf.cos(a2) * 0.5f, 0.5f + Mathf.sin(a2) * 0.5f)
+            val cos1 = Mathf.cos(a1)
+            val sin1 = Mathf.sin(a1)
+            val cos2 = Mathf.cos(a2)
+            val sin2 = Mathf.sin(a2)
+
+            // center vertex
+            out[k++] = cx; out[k++] = cy; out[k++] = wb; out[k++] = 0.5f; out[k++] = 0.5f
+            // edge vertex 1
+            out[k++] = cx + cos1 * r; out[k++] = cy + sin1 * r
+            out[k++] = wb
+            out[k++] = 0.5f + cos1 * 0.5f; out[k++] = 0.5f + sin1 * 0.5f
+            // edge vertex 2
+            out[k++] = cx + cos2 * r; out[k++] = cy + sin2 * r
+            out[k++] = wb
+            out[k++] = 0.5f + cos2 * 0.5f; out[k++] = 0.5f + sin2 * 0.5f
         }
-        update(createMesh(seg * 3, concatVertices(v)), id, Gl.triangles)
+        update(createMesh(seg * 3, out), id, Gl.triangles)
     }
 
     open fun addPolygonRegion(id: String, cx: Float, cy: Float, r: Float, sides: Int) =
@@ -299,7 +312,9 @@ open class DefaultShader(vert: String = "default", frag: String = "default") : V
         update(createMesh(seg * 6, concatVertices(v)), id, Gl.triangles)
     }
 
-    open fun getBuildIsAdded(id: String): Boolean {
+    open fun shouldRemoveMesh(id: String): Boolean {
+        // 仅识别形如 [<buildId>] 的 mesh,其它格式(HeatBlock 的 [name][x][y]、Zone 的 [Zone]N)
+        // 各自由所属 build 的 dispose() 或 lifeCycle 流程清理
         val buildId = id.removePrefix("[").removeSuffix("]").toIntOrNull() ?: return false
         return Groups.build.find { it.id == buildId } == null
     }
@@ -387,22 +402,14 @@ open class DefaultShader(vert: String = "default", frag: String = "default") : V
         Events.on(EventType.ResizeEvent::class.java) { disposeBuffer() }
         Events.run(EventType.Trigger.update) {
             lifeCycleUpdate()
-            val iterator = meshMap.iterator()
-            while (iterator.hasNext()) {
-                val (mesh, _) = iterator.next()
-                if (getBuildIsAdded(mesh)) {
-                    remove(mesh)
+            // 收集 -> 删除,避免在迭代 HashMap 时修改抛 CME
+            var toRemove: MutableList<String>? = null
+            for (id in meshMap.keys) {
+                if (shouldRemoveMesh(id)) {
+                    (toRemove ?: mutableListOf<String>().also { toRemove = it }).add(id)
                 }
             }
+            toRemove?.forEach { remove(it) }
         }
     }
-}
-
-fun Color.abgr8888ToColor(value: Int): Color {
-    val a = (value ushr 24 and 0xff) / 255f
-    val b = (value ushr 16 and 0xff) / 255f
-    val g = (value ushr 8 and 0xff) / 255f
-    val r = (value and 0xff) / 255f
-
-    return this.set(r, g, b, a)
 }

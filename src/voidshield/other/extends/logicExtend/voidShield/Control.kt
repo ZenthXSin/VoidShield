@@ -1,5 +1,6 @@
 package voidshield.other.extends.logicExtend.voidShield
 
+import arc.math.geom.Rect
 import arc.scene.ui.Button
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
@@ -192,7 +193,7 @@ class VSControl : LStatement() {
         val build = StringBuilder()
         write(build)
         val read = LAssembler.read(build.toString(), true)
-        return if (read.size == 0) null else read.first() as VSControl
+        return if (read.size == 0) null else read.first() as? VSControl
     }
 
     companion object {
@@ -229,8 +230,16 @@ class ControlI(
     var lVars: MutableList<LVar>, var mode: ControlMode
 ) : LExecutor.LInstruction {
 
+    /** UseZone 命令缓冲项;比字符串栈快,避免 `$x | $y` 拼接 + split 解析 */
+    sealed class ZoneCmd {
+        class Circle(val x: Float, val y: Float, val r: Float) : ZoneCmd()
+        class Polygon(val x: Float, val y: Float) : ZoneCmd()
+    }
+
     companion object {
-        val tmp: MutableMap<Int, MutableList<String>> = mutableMapOf()
+        val tmp: MutableMap<Int, MutableList<ZoneCmd>> = mutableMapOf()
+        // 共享的 hitbox 暂存,run 单线程内连续覆写无冲突
+        private val rectBuf = Rect()
     }
 
     override fun run(exec: LExecutor) {
@@ -240,22 +249,20 @@ class ControlI(
             ControlMode.Default -> {
                 val build1 = lVars[0].building() as? MicroVoid.MicroVoidBuild ?: return
                 val build3 = lVars[1].building() as? CorVacuum.CorVacuumBuild ?: return
-                val x = lVars[2].numval.toFloat() * 8
-                val y = lVars[3].numval.toFloat() * 8
-                val radius = lVars[4].numval.toFloat() * 8
+                val x = lVars[2].numfWorld()
+                val y = lVars[3].numfWorld()
+                val radius = lVars[4].numfWorld()
 
                 build1.builds.forEach { build ->
-                    val build2 = build as VelumSolventBuild
+                    val build2 = build as? VelumSolventBuild ?: return@forEach
                     if (!(build1.efficiency == 0f || build2.efficiency == 0f || build3.efficiency == 0f)) {
                         build2.spaces.forEach { (_, zone) ->
-                            Groups.bullet.filterIndexed { _, bullet ->
-                                zone.contains(
-                                    bullet.x,
-                                    bullet.y
-                                ) && bullet.team != build2.team()
-                            }.forEach { b ->
+                            zone.hitbox(rectBuf)
+                            Groups.bullet.intersect(rectBuf.x, rectBuf.y, rectBuf.width, rectBuf.height).each { b ->
+                                if (b.team == build2.team()) return@each
+                                if (!zone.contains(b.x, b.y)) return@each
                                 build1.addCircle(b.x, b.y, 8f, 5f, 0.3f)
-                                build2.triggerHitEffect()
+                                build2.triggerHitEffect(zone.id)
                             }
                         }
 
@@ -277,17 +284,15 @@ class ControlI(
                 val build3 = lVars[1].building() as? CorVacuum.CorVacuumBuild ?: return
 
                 build1.builds.forEach { build ->
-                    val build2 = build as VelumSolventBuild
+                    val build2 = build as? VelumSolventBuild ?: return@forEach
                     if (!(build1.efficiency == 0f || build2.efficiency == 0f || build3.efficiency == 0f)) {
                         build2.spaces.forEach { (_, zone) ->
-                            Groups.bullet.filterIndexed { _, bullet ->
-                                zone.contains(
-                                    bullet.x,
-                                    bullet.y
-                                ) && bullet.team != build2.team()
-                            }.forEach { b ->
+                            zone.hitbox(rectBuf)
+                            Groups.bullet.intersect(rectBuf.x, rectBuf.y, rectBuf.width, rectBuf.height).each { b ->
+                                if (b.team == build2.team()) return@each
+                                if (!zone.contains(b.x, b.y)) return@each
                                 build1.addCircle(b.x, b.y, 8f, 5f, 0.3f)
-                                build2.triggerHitEffect()
+                                build2.triggerHitEffect(zone.id)
                             }
                         }
                     }
@@ -314,46 +319,41 @@ class ControlI(
                 val y = lVars[1].numfWorld()
                 val radius = lVars[2].numfWorld()
 
-                tmp[exec.build.id]?.add("Circle | $x | $y | $radius")
+                tmp[exec.build.id]?.add(ZoneCmd.Circle(x, y, radius))
             }
 
             ControlMode.PolygonZone -> {
                 val x = lVars[0].numfWorld()
                 val y = lVars[1].numfWorld()
 
-                tmp[exec.build.id]?.add("Polygon | $x | $y")
+                tmp[exec.build.id]?.add(ZoneCmd.Polygon(x, y))
             }
 
             ControlMode.UseZone -> {
                 val build = lVars[0].building() as? VelumSolventBuild ?: return
 
-                val polygonTmp: MutableList<Float> = mutableListOf()
+                // FloatSeq 走原生 float,避免 MutableList<Float> 的自动装箱
+                val polygonTmp = arc.struct.FloatSeq()
 
-                tmp[exec.build.id]?.forEach {
-                    val split = it.split(" | ")
-                    when (split[0]) {
-                        "Circle" -> {
-                            val x = split[1].toFloatOrNull() ?: 0f
-                            val y = split[2].toFloatOrNull() ?: 0f
-                            val radius = split[3].toFloatOrNull() ?: 0f
+                tmp[exec.build.id]?.forEach { cmd ->
+                    when (cmd) {
+                        is ZoneCmd.Circle -> {
                             if (build.efficiency == 0f) return
-                            build.addCircle(x, y, radius)
+                            build.addCircle(cmd.x, cmd.y, cmd.r)
                         }
-                        "Polygon" -> {
-                            val x = split[1].toFloatOrNull() ?: 0f
-                            val y = split[2].toFloatOrNull() ?: 0f
-                            polygonTmp.add(x)
-                            polygonTmp.add(y)
+                        is ZoneCmd.Polygon -> {
+                            polygonTmp.add(cmd.x)
+                            polygonTmp.add(cmd.y)
                         }
                     }
                 }
 
                 if (polygonTmp.size >= 6) {
                     if (build.efficiency == 0f) return
-                    build.addPolygon(polygonTmp.toFloatArray())
+                    build.addPolygon(polygonTmp.toArray())
                 }
 
-                tmp[exec.build.id]?.clear()
+                tmp.remove(exec.build.id)
             }
 
             ControlMode.UpdateZone -> {

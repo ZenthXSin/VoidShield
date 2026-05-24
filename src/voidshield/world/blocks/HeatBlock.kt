@@ -274,20 +274,30 @@ open class HeatBlock(name: String) : Block(name) {
         }
 
         override var hasShader: Boolean = false
+
+        // 缓存 meshId,避免每 tick 重新拼字符串(x/y/block.name 都不会变)
+        private val cachedMeshId: String by lazy { "[${this.block.name}][$x][$y]" }
+
+        // 上次写入 shader 的 alpha,变化超过阈值才再写,跳过大量无意义 buffer 操作
+        private var lastGradientAlpha: Float = -1f
+
         override fun created() {
             super.created()
             setShader()
         }
-        override fun getMeshId(): String = "[${this.block.name}][$x][$y]"
+        override fun getMeshId(): String = cachedMeshId
         override fun setGradient() {
-            VsVars.v1Shaders.heatShader.setMeshAlpha(getMeshId(),temperaturePercent)
+            val current = temperaturePercent
+            if (kotlin.math.abs(current - lastGradientAlpha) < 0.005f) return
+            lastGradientAlpha = current
+            VsVars.v1Shaders.heatShader.setMeshAlpha(cachedMeshId, current)
         }
         override fun setShader() {
-            VsVars.v1Shaders.heatShader.addCircleRegion(getMeshId(), x, y, size * 8f)
+            VsVars.v1Shaders.heatShader.addCircleRegion(cachedMeshId, x, y, size * 8f)
         }
 
         override fun dispose() {
-            VsVars.v1Shaders.heatShader.remove(getMeshId())
+            VsVars.v1Shaders.heatShader.remove(cachedMeshId)
         }
     }
 }

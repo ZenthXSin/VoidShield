@@ -71,13 +71,10 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 
         var nowWattage: Float = 0f
 
-        var hasBullet = false
-
-        var hitAlpha: Float = 0f
-
-        var hitTimer: Float = 0f
-
         val hitDuration: Float = 30f
+
+        // zoneId → 剩余 tick;每个 zone 独立计时,避免命中态在同一 build 的多 zone 间泄漏
+        val hitTimers: MutableMap<Int, Float> = mutableMapOf()
 
         init {
             updateClipRadius(Vars.world.width() * 8f)
@@ -86,22 +83,25 @@ class VelumSolvent(name: String) : HeatBlock(name) {
         override var extraContent: MutableMap<Int, Any> = HashMap()
 
         override fun addExtraContent(content: Any) {
-            TODO("Not yet implemented")
+            extraContent[extraContent.size] = content
         }
 
         override fun useExtraContent(run: (content: Any) -> Unit) {
-            TODO("Not yet implemented")
+            extraContent.values.forEach(run)
         }
 
         fun getWattage(): Float {
             val areaW = (area / practicalMaxArea) * 0.4f
-            val fissureW = (fissureCount / maxFissureCount) * 0.6f
+            val fissureW = (fissureCount.toFloat() / maxFissureCount) * 0.6f
             return (areaW + fissureW) * efficiency
         }
 
         override fun remove() {
             super.remove()
             spaces.clear()
+            hitTimers.clear()
+            spacesAreaCache = 0f
+            spacesAreaDirty = false
         }
 
         override fun canActiveZone(id: Int): Boolean = efficiency > 0
@@ -115,16 +115,20 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 
         override var spaces: MutableMap<Int, SpaceDate.FieldZone> = mutableMapOf()
 
+        override var spacesAreaCache: Float = 0f
+        override var spacesAreaDirty: Boolean = false
+
         override fun updateTile() {
             updateSpaceDate()
 
             area = getAllAreas()
 
-            //功率逻辑
-            nowWattage = if (getWattage() < nowWattage) {
-                max(getWattage(), nowWattage - 0.5f * 0.01f)
+            //功率逻辑(单 tick 内 wattage 不变,算一次复用)
+            val w = getWattage()
+            nowWattage = if (w < nowWattage) {
+                max(w, nowWattage - 0.5f * 0.01f)
             } else {
-                min(getWattage(), nowWattage + 0.5f * 0.01f)
+                min(w, nowWattage + 0.5f * 0.01f)
             }
 
             if (efficiency > 0) {
@@ -153,9 +157,7 @@ class VelumSolvent(name: String) : HeatBlock(name) {
 
         override fun getMaxArea(): Float = practicalMaxArea - area
 
-        override fun updateEffectValue(zone: SpaceDate.FieldZone): Float {
-            TODO("Not yet implemented")
-        }
+        override fun updateEffectValue(zone: SpaceDate.FieldZone): Float = zone.effectValue
 
         override fun shouldUpdateEffectValue(): Boolean = false
 
@@ -181,34 +183,25 @@ class VelumSolvent(name: String) : HeatBlock(name) {
             Draw.z(Layer.shields + 5f)
             drawZone()
 
-            if (hasBullet && hitAlpha > 0f) {
-                val progress = hitTimer / hitDuration
-                val fadeAlpha = Interp.fade.apply(1f - progress)
+            val remaining = hitTimers[zone.id]
+            if (remaining != null && remaining > 0f) {
+                val fadeAlpha = Interp.fade.apply(remaining / hitDuration)
 
                 Draw.color(Color.white)
                 Draw.z(Layer.shields + 7f)
                 Draw.alpha(fadeAlpha * 0.5f)
                 drawZone()
 
-                hitTimer += Time.delta
-                hitAlpha = max(0f, hitDuration - hitTimer)
-
-                if (hitAlpha <= 0f) {
-                    hasBullet = false
-                    hitTimer = 0f
-                }
+                val next = remaining - Time.delta
+                if (next <= 0f) hitTimers.remove(zone.id) else hitTimers[zone.id] = next
             }
         }
 
-        fun triggerHitEffect() {
-            hasBullet = true
-            hitAlpha = hitDuration
-            hitTimer = 0f
+        fun triggerHitEffect(zoneId: Int) {
+            hitTimers[zoneId] = hitDuration
         }
 
-        override fun shouldDrawEffectStatus(): Boolean {
-            TODO("Not yet implemented")
-        }
+        override fun shouldDrawEffectStatus(): Boolean = true
 
         override fun write(w: Writes) {
             super.write(w)

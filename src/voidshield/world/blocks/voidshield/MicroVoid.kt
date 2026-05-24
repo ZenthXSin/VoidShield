@@ -5,6 +5,8 @@ import arc.graphics.Color
 import arc.graphics.g2d.Draw
 import arc.graphics.g2d.TextureRegion
 import arc.math.Mathf
+import arc.math.geom.Rect
+import arc.struct.Seq
 import voidshield.world.blocks.HeatBlock
 import arc.util.Time
 import mindustry.Vars
@@ -74,11 +76,17 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
         override var spaces: MutableMap<Int, SpaceDate.FieldZone> = HashMap()
 
+        override var spacesAreaCache: Float = 0f
+        override var spacesAreaDirty: Boolean = false
+
         var nowWattage: Float = 0f
 
         var practicalMaxArea: Float = maxArea * 64f
 
         var smoothAlpha = 0f
+
+        // 复用的 hitbox 缓存,避免每 tick/每 zone 分配 Rect
+        private val rectBuf = Rect()
 
         override fun canActiveZone(id: Int): Boolean = efficiency > 0
 
@@ -91,27 +99,38 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
         override fun updateTile() {
             super.updateTile()
-            drawZones()
-            Groups.bullet.forEach {
-                if (it.team != team) {
-                    spaces.forEach { (_, zone) ->
-                        if (zone.contains(it.x, it.y)) {
-                            Lightning.create(
-                                Team.sharded,
-                                Color.white,
-                                it.damage / 10,
-                                it.x,
-                                it.y,
-                                it.rotation() + Random.nextInt(-90,90),
-                                (it.damage / 10).toInt()
-                            )
-                            it.hit = true
-                            it.remove()
-                        }
-                    }
+            if (spaces.isEmpty()) return
+
+            // 先按每个 zone 的 hitbox 用空间索引粗筛子弹,再做精确 contains
+            // 用 Seq.contains(item, true) 做引用去重,避免同一颗子弹被多 zone 命中重复处理
+            val hits = Seq<Bullet>()
+            for ((_, zone) in spaces) {
+                zone.hitbox(rectBuf)
+                Groups.bullet.intersect(rectBuf.x, rectBuf.y, rectBuf.width, rectBuf.height).each { bullet ->
+                    if (bullet.team == team) return@each
+                    if (hits.contains(bullet, true)) return@each
+                    if (!zone.contains(bullet.x, bullet.y)) return@each
+                    hits.add(bullet)
                 }
             }
+            hits.each { b ->
+                Lightning.create(
+                    Team.sharded,
+                    Color.white,
+                    b.damage / 10,
+                    b.x,
+                    b.y,
+                    b.rotation() + Random.nextInt(-90, 90),
+                    (b.damage / 10).toInt()
+                )
+                b.hit = true
+                b.remove()
+            }
+        }
 
+        override fun draw() {
+            super.draw()
+            drawZones()
         }
 
         // 扩展函数，方便复用
@@ -131,11 +150,11 @@ class MicroVoid(name: String) : HeatBlock(name) {
         override var extraContent: MutableMap<Int, Any> = HashMap()
 
         override fun addExtraContent(content: Any) {
-            TODO("Not yet implemented")
+            extraContent[extraContent.size] = content
         }
 
         override fun useExtraContent(run: (content: Any) -> Unit) {
-            TODO("Not yet implemented")
+            extraContent.values.forEach(run)
         }
 
         override fun canAddZone(): Boolean {
@@ -144,9 +163,7 @@ class MicroVoid(name: String) : HeatBlock(name) {
 
         override fun getMaxArea(): Float = practicalMaxArea - getAllAreas()
 
-        override fun updateEffectValue(zone: SpaceDate.FieldZone): Float {
-            TODO("Not yet implemented")
-        }
+        override fun updateEffectValue(zone: SpaceDate.FieldZone): Float = zone.effectValue
 
         override fun shouldUpdateEffectValue(): Boolean = false
 
@@ -171,6 +188,8 @@ class MicroVoid(name: String) : HeatBlock(name) {
         override fun remove() {
             super.remove()
             spaces.clear()
+            spacesAreaCache = 0f
+            spacesAreaDirty = false
         }
 
         //只允许圆形场
