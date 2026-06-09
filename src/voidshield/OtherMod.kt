@@ -22,8 +22,8 @@ class OtherMod : Mod() {
     override fun loadContent() {
         super.loadContent()
 
-        VsVars.load()
         VsVars.modName = Vars.mods.getMod(this::class.java).name
+        VsVars.load()
 
         LTeleport.TeleportStatement.create()
 
