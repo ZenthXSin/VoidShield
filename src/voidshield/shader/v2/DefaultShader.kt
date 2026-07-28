@@ -47,9 +47,6 @@ class V2Shaders {
     }
 
     init {
-        //着色器加载
-        LoadShader(fragName = "voidShield.frag", layzer = Layer.shields + 5f)
-        //渲染加载
         shaderList.forEach {
             Events.run(EventType.Trigger.draw) {
                 Draw.drawRange(it.layzer,1f, {

@@ -25,9 +25,8 @@ class OtherMod : Mod() {
         VsVars.modName = Vars.mods.getMod(this::class.java).name
         VsVars.load()
 
+        Log.info("[OtherMod] To be lib by @${VsVars.modName}")
+
         LTeleport.TeleportStatement.create()
-
-        //UnitTypes.beta.abilities.add(TeleportAbility())
-
     }
 }

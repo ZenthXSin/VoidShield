@@ -22,20 +22,22 @@ import voidshield.world.shaders.BlackHoleShader
 import voidshield.world.shaders.HeatShader
 
 object VsVars {
-    var world = World()
-
     var modName = "voidshield"
 
-    var v1Shaders = V1Shaders()
+    val world: World by lazy { World() }
 
-    var v2Shaders = V2Shaders()
+    val v1Shaders: V1Shaders by lazy { V1Shaders() }
 
-    var logicCategory: LogicCategory = LogicCategory()
+    val logicCategory: LogicCategory by lazy { LogicCategory() }
 
-    var settings: Settings = Settings()
+    val settings: Settings by lazy { Settings() }
 
     fun load() {
         Log.info("[VsVars] VsVars Loading")
+
+        V2Shaders()
+        V2Shaders.LoadShader(fragName = "voidShield.frag", layzer = Layer.shields + 5f)
+
         world.load()
         v1Shaders.load()
         JsonShaderLoader.loadJson(modName)
@@ -44,7 +46,6 @@ object VsVars {
             settings.init()
         }
     }
-
 }
 
 class Skills {

@@ -5,11 +5,14 @@ import arc.util.serialization.Json
 import mindustry.Vars
 import voidshield.other.VsVars
 import voidshield.shader.ShaderManage
+import voidshield.shader.v2.V2Shaders
 
 class ShaderConfig {
     var name: String = ""
     var frag: String = ""
     var vert: String = ""
+    var version: Int = 1
+    var layzer: Float = 1f
 }
 
 class ShaderConfigRoot {
@@ -44,6 +47,7 @@ object JsonShaderLoader {
             }
 
             root.shaders.forEach { conf ->
+                Log.info("[JsonShader] 着色器实现版本: v${conf.version}")
                 if (conf.name.isBlank()) {
                     Log.warn("[JsonShader] 跳过一个着色器配置：name 为空")
                     return@forEach
@@ -58,13 +62,20 @@ object JsonShaderLoader {
                 }
 
                 try {
-                    val shader = object : DefaultShader() {
-                        init {
-                            shader = ShaderManage.getShader(conf.vert, conf.frag, mod)
+                    when (conf.version) {
+                        1 -> {
+                            val shader = object : DefaultShader() {
+                                init {
+                                    shader = ShaderManage.getShader(conf.vert, conf.frag, mod)
+                                }
+                            }
+
+                            VsVars.v1Shaders.shaders[conf.name] = shader
+                        }
+                        2 -> {
+                            V2Shaders.LoadShader(fragName = conf.frag, layzer = conf.layzer)
                         }
                     }
-
-                    VsVars.v1Shaders.shaders[conf.name] = shader
                     Log.info("[JsonShader] 已注册着色器: @ (vert=@, frag=@)", conf.name, conf.vert, conf.frag)
                 } catch (e: Exception) {
                     Log.err("[JsonShader] 加载着色器失败: @ (vert=@, frag=@)", conf.name, conf.vert, conf.frag)
