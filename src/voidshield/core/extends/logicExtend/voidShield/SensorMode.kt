@@ -1,4 +1,4 @@
-package voidshield.other.extends.logicExtend.voidShield
+package voidshield.core.extends.logicExtend.voidShield
 
 enum class SensorMode(vararg val params: String) {
     Contains("x","y","sensors","out"),

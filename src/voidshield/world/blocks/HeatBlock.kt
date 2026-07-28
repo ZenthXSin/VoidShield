@@ -19,9 +19,9 @@ import mindustry.world.draw.DrawDefault
 import mindustry.world.meta.Stat
 import mindustry.world.meta.StatCat
 import mindustry.world.meta.StatUnit
-import voidshield.other.VsVars
-import voidshield.other.interfaces.BindBuilding
-import voidshield.other.interfaces.BlockShader
+import voidshield.core.VsVars
+import voidshield.core.interfaces.BindBuilding
+import voidshield.core.interfaces.BlockShader
 import voidshield.world.blocks.heat.HeatCrossover
 import kotlin.math.*
 

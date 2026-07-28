@@ -1,21 +1,14 @@
 package voidshield
 
-import arc.Events
-import arc.func.Prov
-import arc.graphics.Color
-import arc.graphics.g2d.Draw
-import arc.graphics.gl.Shader
 import arc.util.Log
 import mindustry.Vars
 import mindustry.mod.Mod
-import mindustry.type.Planet
 import voidshield.content.VSBlocks
-import voidshield.other.VsVars
-import voidshield.other.extends.categoryExtend.applyCategory
-import voidshield.other.extends.logicExtend.LTeleport
-import voidshield.other.extends.logicExtend.voidShield.VSControl
-import voidshield.other.extends.logicExtend.voidShield.VSSensor
-import voidshield.shader.ShaderManage
+import voidshield.core.VsVars
+import voidshield.core.extends.categoryExtend.applyCategory
+import voidshield.core.extends.logicExtend.LTeleport
+import voidshield.core.extends.logicExtend.voidShield.VSControl
+import voidshield.core.extends.logicExtend.voidShield.VSSensor
 
 class VoidShieldMod : Mod() {
 

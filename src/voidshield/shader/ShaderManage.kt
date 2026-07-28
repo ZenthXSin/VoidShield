@@ -5,7 +5,7 @@ import arc.files.Fi
 import arc.graphics.gl.Shader
 import arc.util.Log
 import mindustry.Vars
-import voidshield.other.VsVars
+import voidshield.core.VsVars
 
 object ShaderManage {
 

@@ -1,7 +1,5 @@
-package voidshield.other.extends.logicExtend
+package voidshield.core.extends.logicExtend
 
-import mindustry.gen.Building
-import mindustry.logic.LExecutor
 import mindustry.logic.LVar
 import kotlin.math.floor
 

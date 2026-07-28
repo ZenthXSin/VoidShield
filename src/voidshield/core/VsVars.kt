@@ -1,4 +1,4 @@
-package voidshield.other
+package voidshield.core
 
 import arc.Core
 import arc.Events
@@ -11,10 +11,11 @@ import mindustry.graphics.Layer
 import mindustry.graphics.Pal
 import mindustry.logic.LCategory
 import voidshield.entities.skills.BlackHole
-import voidshield.other.dateTypes.SpaceDate
-import voidshield.other.extends.other.Settings
+import voidshield.core.dateTypes.SpaceDate
+import voidshield.core.extends.categoryExtend.CategoryExtenderJsonParse
+import voidshield.core.extends.other.Settings
 import voidshield.shader.v1.DefaultShader
-import voidshield.shader.v1.JsonShaderLoader
+import voidshield.shader.JsonShaderLoader
 import voidshield.shader.v1.TestShader
 import voidshield.shader.v2.V2Shaders
 import voidshield.world.effects.effect.TeleportEffect.loadJson
@@ -41,6 +42,7 @@ object VsVars {
         world.load()
         v1Shaders.load()
         JsonShaderLoader.loadJson(modName)
+        CategoryExtenderJsonParse.loadJson(modName)
         Events.run(EventType.ClientLoadEvent::class.java) {
             loadJson(modName)
             settings.init()

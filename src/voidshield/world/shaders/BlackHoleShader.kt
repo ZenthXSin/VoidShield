@@ -1,6 +1,6 @@
 package voidshield.world.shaders
 
-import voidshield.other.VsVars
+import voidshield.core.VsVars
 import voidshield.shader.v1.DefaultShader
 import voidshield.shader.ShaderManage
 

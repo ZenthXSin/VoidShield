@@ -151,7 +151,7 @@
 ### 示例 1：基础圆形着色器（热能扩散效果）
 ```json
 {
-    "type": "voidshield.other.drawers.DrawShader",
+    "type": "voidshield.coredrawers.DrawShader",
     "shaderName": "HeatShader",
     "data": {
         "type": "Circle",
@@ -164,7 +164,7 @@
 ### 示例 2：六边形能量场
 ```json
 {
-    "type": "voidshield.other.drawers.DrawShader",
+    "type": "voidshield.coredrawers.DrawShader",
     "shaderName": "EnergyFieldShader",
     "data": {
         "type": "Polygon",
@@ -177,7 +177,7 @@
 ### 示例 3：带纹理的矩形区域
 ```json
 {
-    "type": "voidshield.other.drawers.DrawShader",
+    "type": "voidshield.coredrawers.DrawShader",
     "shaderName": "CustomTextureShader",
     "data": {
         "type": "TexturedRegion",
@@ -201,7 +201,7 @@
             "suffix": "-base"
         },
         {
-            "type": "voidshield.other.drawers.DrawShader",
+            "type": "voidshield.coredrawers.DrawShader",
             "shaderName": "GlowShader",
             "data": {
                 "type": "Ring",
@@ -217,7 +217,7 @@
 ### 示例 5：屏幕空间 UI 元素
 ```json
 {
-    "type": "voidshield.other.drawers.DrawShader",
+    "type": "voidshield.coredrawers.DrawShader",
     "shaderName": "UIShader",
     "data": {
         "type": "ScreenQuad",

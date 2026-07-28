@@ -1,4 +1,4 @@
-package voidshield.other.extends.logicExtend.voidShield
+package voidshield.core.extends.logicExtend.voidShield
 
 import arc.scene.ui.Button
 import arc.scene.ui.layout.Cell
@@ -6,8 +6,7 @@ import arc.scene.ui.layout.Table
 import mindustry.gen.LogicIO
 import mindustry.logic.*
 import mindustry.ui.Styles
-import voidshield.other.VsVars
-import voidshield.other.extends.logicExtend.*
+import voidshield.core.VsVars
 import voidshield.world.blocks.voidshield.VelumSolvent.VelumSolventBuild
 
 class VSSensor : LStatement() {

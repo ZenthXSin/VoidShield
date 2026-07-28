@@ -2,9 +2,7 @@ package voidshield.world.blocks.voidshield
 
 import arc.Core
 import arc.graphics.Color
-import arc.graphics.g2d.Draw
 import arc.graphics.g2d.TextureRegion
-import arc.math.Mathf
 import arc.math.geom.Rect
 import arc.struct.Seq
 import voidshield.world.blocks.HeatBlock
@@ -18,12 +16,10 @@ import mindustry.gen.Bullet
 import mindustry.gen.Groups
 import mindustry.graphics.Pal
 import mindustry.ui.Bar
-import mindustry.world.Tile
-import mindustry.world.Tiles
 import mindustry.world.meta.Stat
-import voidshield.other.VsVars
-import voidshield.other.dateTypes.SpaceDate
-import voidshield.other.interfaces.SpaceDateInterface
+import voidshield.core.VsVars
+import voidshield.core.dateTypes.SpaceDate
+import voidshield.core.interfaces.SpaceDateInterface
 import voidshield.world.blocks.HeatStat
 import kotlin.random.Random
 

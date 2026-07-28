@@ -11,8 +11,8 @@ import mindustry.type.Category
 import mindustry.type.ItemStack
 import mindustry.world.draw.*
 import mindustry.world.draw.DrawDefault
-import voidshield.other.drawers.DrawHeat
-import voidshield.other.extends.categoryExtend.registerCategory
+import voidshield.core.drawers.DrawHeat
+import voidshield.core.extends.categoryExtend.registerCategory
 import voidshield.world.blocks.heat.HeatCatheter
 import voidshield.world.blocks.heat.HeatCrossover
 import voidshield.world.blocks.heat.HeatRouter

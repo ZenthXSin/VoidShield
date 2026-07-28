@@ -1,10 +1,9 @@
-package voidshield.other.extends.logicExtend.voidShield
+package voidshield.core.extends.logicExtend.voidShield
 
 import arc.math.geom.Rect
 import arc.scene.ui.Button
 import arc.scene.ui.layout.Cell
 import arc.scene.ui.layout.Table
-import arc.util.Log
 import mindustry.gen.Groups
 import mindustry.gen.LogicIO
 import mindustry.logic.LAssembler
@@ -14,9 +13,9 @@ import mindustry.logic.LExecutor
 import mindustry.logic.LStatement
 import mindustry.logic.LVar
 import mindustry.ui.Styles
-import voidshield.other.VsVars
-import voidshield.other.dateTypes.SpaceDate
-import voidshield.other.interfaces.BindBuilding
+import voidshield.core.VsVars
+import voidshield.core.dateTypes.SpaceDate
+import voidshield.core.interfaces.BindBuilding
 import voidshield.world.blocks.voidshield.CorVacuum
 import voidshield.world.blocks.voidshield.MicroVoid
 import voidshield.world.blocks.voidshield.VelumSolvent.VelumSolventBuild

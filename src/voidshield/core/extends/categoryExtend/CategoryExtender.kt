@@ -1,4 +1,4 @@
-package voidshield.other.extends.categoryExtend
+package voidshield.core.extends.categoryExtend
 
 import arc.Core
 import arc.scene.style.TextureRegionDrawable
@@ -10,8 +10,7 @@ import mindustry.type.Category
 import mindustry.ui.fragments.PlacementFragment
 import universe.util.reflect.Enums.accessEnum0
 import universe.util.reflect.Reflection.accessField
-import voidshield.other.VsVars
-import java.lang.reflect.Field
+import voidshield.core.VsVars
 
 /**
  * 第一阶段：仅向 Category 枚举追加新枚举值，并同步更新 Category.all。
@@ -61,7 +60,7 @@ fun applyCategory(cat: Category) {
     val blockfrag = Vars.ui.hudfrag.blockfrag
     val categoryEmptyAccessor = accessField<PlacementFragment, BooleanArray>("categoryEmpty")
     val oldArray: BooleanArray = categoryEmptyAccessor.get(blockfrag)
-    val newArray = BooleanArray(Category.all.size) { i -> if (i < oldArray.size) oldArray[i] else true }
+    val newArray = BooleanArray(Category.all.size) { i -> i >= oldArray.size || oldArray[i] }
     categoryEmptyAccessor.set(blockfrag, newArray)
 
     // 刷新建筑选择栏 UI

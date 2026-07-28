@@ -1,4 +1,4 @@
-package voidshield.other.interfaces
+package voidshield.core.interfaces
 
 import arc.util.Disposable
 

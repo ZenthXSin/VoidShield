@@ -1,4 +1,4 @@
-package voidshield.other.techTree
+package voidshield.core.techTree
 
 import arc.struct.Seq
 import mindustry.content.TechTree

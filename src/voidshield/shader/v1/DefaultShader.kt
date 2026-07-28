@@ -13,9 +13,9 @@ import arc.math.Mat
 import arc.util.Time
 import mindustry.Vars
 import mindustry.game.EventType
-import voidshield.other.interfaces.VSShaderLoader
+import voidshield.core.interfaces.VSShaderLoader
 import mindustry.gen.Groups
-import voidshield.other.VsVars
+import voidshield.core.VsVars
 import voidshield.shader.ScreenSampler
 import voidshield.shader.ShaderManage
 

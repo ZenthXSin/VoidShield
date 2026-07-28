@@ -1,4 +1,4 @@
-﻿package voidshield.other.dateTypes
+﻿package voidshield.core.dateTypes
 
 import arc.math.geom.*
 import arc.struct.Seq

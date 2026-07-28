@@ -1,0 +1,131 @@
+package voidshield.core.extends.other
+
+import mindustry.mod.ClassMap
+import voidshield.OtherMod
+import voidshield.VoidShieldMod
+import voidshield.core.VsVars
+import voidshield.core.interfaces.BindBuilding
+import voidshield.core.interfaces.VSShaderLoader.MeshData
+import voidshield.core.extends.logicExtend.voidShield.ControlI.ZoneCmd
+import voidshield.core.extends.logicExtend.voidShield.ControlI.ZoneCmd.Circle
+import voidshield.core.extends.logicExtend.voidShield.ControlI.ZoneCmd.Polygon
+import voidshield.world.blocks.HeatBlock.HeatBuild
+import voidshield.world.blocks.heat.HeatCatheter.HeatCatheterBuild
+import voidshield.world.blocks.heat.HeatRouter.HeatRouterBuild
+import voidshield.world.blocks.heat.HeaterBlock.HeaterBuild
+import voidshield.world.blocks.voidshield.CorVacuum.CorVacuumBuild
+import voidshield.world.blocks.voidshield.MicroVoid.MicroVoidBuild
+import voidshield.world.blocks.voidshield.VelumSolvent.VelumSolventBuild
+import voidshield.core.dateTypes.SpaceDate
+import voidshield.core.dateTypes.SpaceDate.CircleZone
+import voidshield.core.dateTypes.SpaceDate.PolygonZone
+import voidshield.core.dateTypes.SpaceDate.ZoneWrapper
+import voidshield.core.drawers.DrawEnergyField
+import voidshield.core.drawers.DrawHeat
+import voidshield.core.drawers.DrawShader
+import voidshield.core.drawers.ShaderData
+import voidshield.core.extends.categoryExtend.CatConfig
+import voidshield.core.extends.categoryExtend.CategoryExtenderConfig
+import voidshield.core.extends.logicExtend.LTeleport
+import voidshield.core.extends.logicExtend.LTeleport.TeleportI
+import voidshield.core.extends.logicExtend.LTeleport.TeleportStatement
+import voidshield.core.extends.logicExtend.voidShield.ControlI
+import voidshield.core.extends.logicExtend.voidShield.SensorI
+import voidshield.core.extends.logicExtend.voidShield.VSControl
+import voidshield.core.extends.logicExtend.voidShield.VSSensor
+import voidshield.entities.abilities.TeleportAbility
+import voidshield.entities.abilities.TeleportBulletData
+import voidshield.entities.abilities.TeleportData
+import voidshield.entities.abilities.TeleportEffectData
+import voidshield.entities.abilities.TeleportSoundData
+import voidshield.entities.skills.BlackHole
+import voidshield.entities.skills.BlackHoleData
+import voidshield.shader.ShaderConfig
+import voidshield.shader.ShaderConfigRoot
+import voidshield.shader.v1.DefaultShader
+import voidshield.shader.v1.LifeCycleData
+import voidshield.shader.v1.ScreenShader
+import voidshield.shader.v2.V2Shaders
+import voidshield.world.blocks.HeatBlock
+import voidshield.world.blocks.OtherBlock
+import voidshield.world.blocks.heat.HeatCatheter
+import voidshield.world.blocks.heat.HeatCrossover
+import voidshield.world.blocks.heat.HeatRouter
+import voidshield.world.blocks.heat.HeaterBlock
+import voidshield.world.blocks.voidshield.CorVacuum
+import voidshield.world.blocks.voidshield.MicroVoid
+import voidshield.world.blocks.voidshield.VelumSolvent
+import voidshield.world.effects.effect.Config
+import voidshield.world.effects.effect.TeleportEffect.EndState
+import voidshield.world.effects.effect.TeleportEffect.FullscreenParticle
+import voidshield.world.effects.effect.TeleportEffect.LineParticle
+import voidshield.world.effects.effect.TeleportEffect.Particle
+import voidshield.world.effects.effect.TeleportEffect.ReadyState
+import voidshield.world.effects.effect.TeleportEffect.Ring
+import voidshield.world.shaders.BlackHoleShader
+import voidshield.world.shaders.HeatShader
+
+object ClassMapExtend {
+    fun load() {
+        ClassMap.classes.put("ZoneCmd", ZoneCmd::class.java)
+        ClassMap.classes.put("ZoneCmd.Circle", Circle::class.java)
+        ClassMap.classes.put("ZoneCmd.Polygon", Polygon::class.java)
+        ClassMap.classes.put("HeatBuild", HeatBuild::class.java)
+        ClassMap.classes.put("HeatCatheterBuild", HeatCatheterBuild::class.java)
+        ClassMap.classes.put("HeatRouterBuild", HeatRouterBuild::class.java)
+        ClassMap.classes.put("HeaterBuild", HeaterBuild::class.java)
+        ClassMap.classes.put("CorVacuumBuild", CorVacuumBuild::class.java)
+        ClassMap.classes.put("MicroVoidBuild", MicroVoidBuild::class.java)
+        ClassMap.classes.put("VelumSolventBuild", VelumSolventBuild::class.java)
+        ClassMap.classes.put("MeshData", MeshData::class.java)
+        ClassMap.classes.put("VoidShieldMod", VoidShieldMod::class.java)
+        ClassMap.classes.put("SpaceDate", SpaceDate::class.java)
+        ClassMap.classes.put("CircleZone", CircleZone::class.java)
+        ClassMap.classes.put("PolygonZone", PolygonZone::class.java)
+        ClassMap.classes.put("ZoneWrapper", ZoneWrapper::class.java)
+        ClassMap.classes.put("DrawEnergyField", DrawEnergyField::class.java)
+        ClassMap.classes.put("DrawHeat", DrawHeat::class.java)
+        ClassMap.classes.put("DrawShader", DrawShader::class.java)
+        ClassMap.classes.put("ShaderData", ShaderData::class.java)
+        ClassMap.classes.put("CategoryExtenderConfig", CategoryExtenderConfig::class.java)
+        ClassMap.classes.put("CatConfig", CatConfig::class.java)
+        ClassMap.classes.put("LTeleport", LTeleport::class.java)
+        ClassMap.classes.put("TeleportStatement", TeleportStatement::class.java)
+        ClassMap.classes.put("TeleportI", TeleportI::class.java)
+        ClassMap.classes.put("VSControl", VSControl::class.java)
+        ClassMap.classes.put("ControlI", ControlI::class.java)
+        ClassMap.classes.put("VSSensor", VSSensor::class.java)
+        ClassMap.classes.put("SensorI", SensorI::class.java)
+        ClassMap.classes.put("TeleportData", TeleportData::class.java)
+        ClassMap.classes.put("TeleportEffectData", TeleportEffectData::class.java)
+        ClassMap.classes.put("TeleportBulletData", TeleportBulletData::class.java)
+        ClassMap.classes.put("TeleportSoundData", TeleportSoundData::class.java)
+        ClassMap.classes.put("TeleportAbility", TeleportAbility::class.java)
+        ClassMap.classes.put("BlackHole", BlackHole::class.java)
+        ClassMap.classes.put("BlackHoleData", BlackHoleData::class.java)
+        ClassMap.classes.put("ShaderConfig", ShaderConfig::class.java)
+        ClassMap.classes.put("ShaderConfigRoot", ShaderConfigRoot::class.java)
+        ClassMap.classes.put("ScreenShader", ScreenShader::class.java)
+        ClassMap.classes.put("LifeCycleData", LifeCycleData::class.java)
+        ClassMap.classes.put("DefaultShader", DefaultShader::class.java)
+        ClassMap.classes.put("V2Shaders", V2Shaders::class.java)
+        ClassMap.classes.put("Config", Config::class.java)
+        ClassMap.classes.put("Particle", Particle::class.java)
+        ClassMap.classes.put("Ring", Ring::class.java)
+        ClassMap.classes.put("FullscreenParticle", FullscreenParticle::class.java)
+        ClassMap.classes.put("LineParticle", LineParticle::class.java)
+        ClassMap.classes.put("ReadyState", ReadyState::class.java)
+        ClassMap.classes.put("EndState", EndState::class.java)
+        ClassMap.classes.put("BlackHoleShader", BlackHoleShader::class.java)
+        ClassMap.classes.put("HeatShader", HeatShader::class.java)
+        ClassMap.classes.put("HeatCatheter", HeatCatheter::class.java)
+        ClassMap.classes.put("HeatRouter", HeatRouter::class.java)
+        ClassMap.classes.put("HeaterBlock", HeaterBlock::class.java)
+        ClassMap.classes.put("HeatCrossover", HeatCrossover::class.java)
+        ClassMap.classes.put("HeatBlock", HeatBlock::class.java)
+        ClassMap.classes.put("CorVacuum", CorVacuum::class.java)
+        ClassMap.classes.put("MicroVoid", MicroVoid::class.java)
+        ClassMap.classes.put("VelumSolvent", VelumSolvent::class.java)
+        ClassMap.classes.put("OtherBlock", OtherBlock::class.java)
+    }
+}

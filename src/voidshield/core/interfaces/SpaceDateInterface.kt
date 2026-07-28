@@ -1,13 +1,13 @@
-package voidshield.other.interfaces
+package voidshield.core.interfaces
 
 import arc.math.Mathf
 import arc.math.geom.Vec2
 import arc.util.Log
 import arc.util.io.Reads
 import arc.util.io.Writes
-import voidshield.other.VsVars
-import voidshield.other.dateTypes.SpaceDate
-import voidshield.other.dateTypes.SpaceDate.PolygonZone
+import voidshield.core.VsVars
+import voidshield.core.dateTypes.SpaceDate
+import voidshield.core.dateTypes.SpaceDate.PolygonZone
 import java.io.IOException
 
 interface SpaceDateInterface {

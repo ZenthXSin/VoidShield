@@ -1,4 +1,4 @@
-package voidshield.other.drawers
+package voidshield.core.drawers
 
 import arc.Core
 import arc.graphics.*

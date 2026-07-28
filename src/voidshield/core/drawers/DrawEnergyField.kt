@@ -1,4 +1,4 @@
-package voidshield.other.drawers
+package voidshield.core.drawers
 
 import arc.graphics.Color
 import arc.graphics.g2d.Draw

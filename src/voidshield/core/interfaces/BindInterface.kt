@@ -1,4 +1,4 @@
-package voidshield.other.interfaces
+package voidshield.core.interfaces
 
 import mindustry.gen.Building
 import kotlin.collections.forEach

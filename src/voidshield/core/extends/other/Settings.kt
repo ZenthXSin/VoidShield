@@ -1,4 +1,4 @@
-package voidshield.other.extends.other
+package voidshield.core.extends.other
 
 import arc.util.Log
 import mindustry.Vars

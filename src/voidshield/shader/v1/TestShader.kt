@@ -4,7 +4,7 @@ import arc.Core
 import arc.assets.loaders.TextureLoader.TextureParameter
 import arc.func.Cons
 import arc.graphics.Texture
-import voidshield.other.VsVars
+import voidshield.core.VsVars
 import voidshield.shader.ShaderManage
 
 object TestShader : DefaultShader() {

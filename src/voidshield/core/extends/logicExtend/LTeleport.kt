@@ -1,4 +1,4 @@
-package voidshield.other.extends.logicExtend
+package voidshield.core.extends.logicExtend
 
 import arc.math.Angles
 import arc.scene.ui.layout.Table

@@ -1,11 +1,11 @@
-package voidshield.other.drawers
+package voidshield.core.drawers
 
 import arc.util.Log
 import mindustry.gen.Building
 import mindustry.world.Block
 import mindustry.world.draw.DrawBlock
-import voidshield.other.VsVars
-import voidshield.other.interfaces.BlockShader
+import voidshield.core.VsVars
+import voidshield.core.interfaces.BlockShader
 import voidshield.shader.v1.DefaultShader
 
 class DrawShader : DrawBlock(), BlockShader {
