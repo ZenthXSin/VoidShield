@@ -1,4 +1,4 @@
-package voidshield.core.extends.logicExtend.voidShield
+package voidshield.core.extends.logic.voidShield
 
 import arc.math.geom.Rect
 import arc.scene.ui.Button

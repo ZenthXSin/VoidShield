@@ -5,7 +5,7 @@ plugins {
 version '1.0'
 
 ext{
-    mindustryVersion = 'v157.4'
+    mindustryVersion = 'v159.7'
     localSdkRoot = findProperty("localSdkRoot")
             ?: findProperty("sdkRoot")
             ?: "E:/new/android-sdk/"

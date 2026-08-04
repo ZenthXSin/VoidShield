@@ -1,7 +1,6 @@
 package voidshield
 
 import arc.util.Log
-import voidshield.core.extends.logicExtend.LTeleport
 import mindustry.Vars
 import mindustry.mod.Mod
 import voidshield.core.VsVars

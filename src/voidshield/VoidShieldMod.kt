@@ -5,10 +5,10 @@ import mindustry.Vars
 import mindustry.mod.Mod
 import voidshield.content.VSBlocks
 import voidshield.core.VsVars
-import voidshield.core.extends.categoryExtend.applyCategory
-import voidshield.core.extends.logicExtend.LTeleport
-import voidshield.core.extends.logicExtend.voidShield.VSControl
-import voidshield.core.extends.logicExtend.voidShield.VSSensor
+import voidshield.core.extends.category.applyCategory
+import voidshield.core.extends.logic.LTeleport
+import voidshield.core.extends.logic.voidShield.VSControl
+import voidshield.core.extends.logic.voidShield.VSSensor
 
 class VoidShieldMod : Mod() {
 

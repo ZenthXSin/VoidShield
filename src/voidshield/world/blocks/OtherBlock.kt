@@ -6,9 +6,10 @@ import mindustry.world.Block
 import voidshield.OtherMod
 
 class OtherBlock(name: String) : Block(name) {
+    var modName:String = ""
     init {
         Events.run(EventType.ClientLoadEvent::class.java) {
-            OtherMod.load(name)
+            OtherMod.load(modName)
         }
     }
 }

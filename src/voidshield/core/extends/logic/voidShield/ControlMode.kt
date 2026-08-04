@@ -1,4 +1,4 @@
-package voidshield.core.extends.logicExtend.voidShield
+package voidshield.core.extends.logic.voidShield
 
 enum class ControlMode(vararg val params: String) {
     Default("build","build","x","y","range"),

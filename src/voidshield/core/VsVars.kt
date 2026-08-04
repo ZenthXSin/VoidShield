@@ -12,7 +12,7 @@ import mindustry.graphics.Pal
 import mindustry.logic.LCategory
 import voidshield.entities.skills.BlackHole
 import voidshield.core.dateTypes.SpaceDate
-import voidshield.core.extends.categoryExtend.CategoryExtenderJsonParse
+import voidshield.core.extends.category.CategoryExtenderJsonParse
 import voidshield.core.extends.other.Settings
 import voidshield.shader.v1.DefaultShader
 import voidshield.shader.JsonShaderLoader
@@ -33,14 +33,17 @@ object VsVars {
 
     val settings: Settings by lazy { Settings() }
 
-    fun load() {
+    fun load(lib: Boolean = false) {
         Log.info("[VsVars] VsVars Loading")
 
         V2Shaders()
-        V2Shaders.LoadShader(fragName = "voidShield.frag", layzer = Layer.shields + 5f)
-
-        world.load()
         v1Shaders.load()
+
+        if (!lib) {
+            world.load()
+            V2Shaders.LoadShader(fragName = "voidShield.frag", layzer = Layer.shields + 5f)
+        }
+
         JsonShaderLoader.loadJson(modName)
         CategoryExtenderJsonParse.loadJson(modName)
         Events.run(EventType.ClientLoadEvent::class.java) {
@@ -56,11 +59,13 @@ class Skills {
 
 class V1Shaders {
     var shaders: MutableMap<String, DefaultShader> = mutableMapOf()
-    var heatShader: HeatShader = addShader("HeatShader", HeatShader()) as HeatShader
-    var blackHole: BlackHoleShader = addShader("BlackHole", BlackHoleShader()) as BlackHoleShader
-    var voidShield: DefaultShader = addShader("VoidShield", DefaultShader(frag = "test"))
-    var spaceDistortion: DefaultShader = addShader("SpaceDistortion", DefaultShader(frag = "spaceDistortion"))
-    var defaultShader: DefaultShader = addShader("DefaultShader", DefaultShader())
+
+    val heatShader: HeatShader by lazy { addShader("HeatShader", HeatShader()) as HeatShader }
+    val blackHole: BlackHoleShader by lazy { addShader("BlackHole", BlackHoleShader()) as BlackHoleShader }
+    val voidShield: DefaultShader by lazy { addShader("VoidShield", DefaultShader(frag = "test")) }
+    val spaceDistortion: DefaultShader by lazy { addShader("SpaceDistortion", DefaultShader(frag = "spaceDistortion")) }
+    val defaultShader: DefaultShader by lazy { addShader("DefaultShader", DefaultShader()) }
+
     fun addShader(name: String, shader: DefaultShader): DefaultShader {
         shaders[name] = shader
         return shader

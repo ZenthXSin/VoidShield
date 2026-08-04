@@ -1,4 +1,4 @@
-package voidshield.core.extends.logicExtend
+package voidshield.core.extends.logic
 
 import mindustry.logic.LVar
 import kotlin.math.floor

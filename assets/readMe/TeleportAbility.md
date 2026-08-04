@@ -29,7 +29,7 @@
 | `readyTime` | Float | 290 | 跃迁准备/蓄力时间（帧），之后执行传送 |
 | `endTime` | Float | 130 | 跃迁后摇/结束动画时间（帧） |
 | `useDefaultEffect` | Boolean | true | 是否使用默认特效（true 时忽略 effects/sounds，使用代码内置特效） |
-| `statusEffect` | String | "none" | 跃迁期间给予单位的状态效果 ID（如 "unmoving", "slow" 等） |
+| `status` | String | "none" | 跃迁期间给予单位的状态效果 ID（如 "unmoving", "slow" 等） |
 | `statusTime` | Float | 0 | 状态效果持续时间（帧） |
 | `effects` | Array | [] | 自定义特效序列（useDefaultEffect=false 时生效） |
 | `sounds` | Array | [] | 自定义音效序列（useDefaultEffect=false 时生效） |

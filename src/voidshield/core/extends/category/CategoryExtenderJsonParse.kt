@@ -1,4 +1,4 @@
-package voidshield.core.extends.categoryExtend
+package voidshield.core.extends.category
 
 import arc.struct.Seq
 import arc.util.Log

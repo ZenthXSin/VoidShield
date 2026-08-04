@@ -1,4 +1,4 @@
-package voidshield.core.extends.categoryExtend
+package voidshield.core.extends.category
 
 import arc.Core
 import arc.scene.style.TextureRegionDrawable

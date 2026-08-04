@@ -3,6 +3,7 @@ package voidshield.world.blocks
 import arc.graphics.Color
 import arc.graphics.g2d.TextureRegion
 import arc.math.Mathf
+import arc.struct.ObjectMap
 import arc.struct.Seq
 import arc.util.Eachable
 import arc.util.Time
@@ -12,6 +13,7 @@ import mindustry.Vars
 import mindustry.entities.units.BuildPlan
 import mindustry.gen.Building
 import mindustry.graphics.Pal
+import mindustry.mod.ClassMap
 import mindustry.ui.Bar
 import mindustry.world.Block
 import mindustry.world.draw.DrawBlock
@@ -144,11 +146,11 @@ open class HeatBlock(name: String) : Block(name) {
                 val dx = neighbor.tileX() - tileX()
                 val dy = neighbor.tileY() - tileY()
 
-                neighbor = when {
-                    dx == 1 && dy == 0 -> Vars.world.tile(neighbor.tileX() + 1, neighbor.tileY()).build as? HeatBuild
-                    dx == -1 && dy == 0 -> Vars.world.tile(neighbor.tileX() - 1, neighbor.tileY()).build as? HeatBuild
-                    dx == 0 && dy == 1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() + 1).build as? HeatBuild
-                    dx == 0 && dy == -1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() - 1).build as? HeatBuild
+                neighbor = when (dx) {
+                    1 if dy == 0 -> Vars.world.tile(neighbor.tileX() + 1, neighbor.tileY()).build as? HeatBuild
+                    -1 if dy == 0 -> Vars.world.tile(neighbor.tileX() - 1, neighbor.tileY()).build as? HeatBuild
+                    0 if dy == 1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() + 1).build as? HeatBuild
+                    0 if dy == -1 -> Vars.world.tile(neighbor.tileX(), neighbor.tileY() - 1).build as? HeatBuild
                     else -> null
                 } ?: return
             }
@@ -288,7 +290,7 @@ open class HeatBlock(name: String) : Block(name) {
         override fun getMeshId(): String = cachedMeshId
         override fun setGradient() {
             val current = temperaturePercent
-            if (kotlin.math.abs(current - lastGradientAlpha) < 0.005f) return
+            if (abs(current - lastGradientAlpha) < 0.005f) return
             lastGradientAlpha = current
             VsVars.v1Shaders.heatShader.setMeshAlpha(cachedMeshId, current)
         }
