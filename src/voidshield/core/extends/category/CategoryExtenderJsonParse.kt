@@ -13,7 +13,7 @@ class CategoryExtenderConfig {
 
 class CatConfig {
     var name: String = ""
-    var block: Seq<Block> = Seq()
+    var block: Seq<String> = Seq()
 }
 
 object CategoryExtenderJsonParse {
@@ -32,7 +32,7 @@ object CategoryExtenderJsonParse {
         //修改Block的Category
         config.catList.forEach { config ->
             config.block.forEach {
-                Vars.content.block(it.name).category = newCat[config.name]
+                Vars.content.block(it).category = newCat[config.name]
             }
         }
     }
